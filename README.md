@@ -1,5 +1,5 @@
 ---
-title: InventoryGym: Supply Chain Intelligence
+title: "InventoryGym: Supply Chain Intelligence"
 emoji: 📦
 colorFrom: blue
 colorTo: indigo
