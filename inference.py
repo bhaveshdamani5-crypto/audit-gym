@@ -26,17 +26,20 @@ CONFIGS = {
 
 config = CONFIGS.get(TASK_NAME, CONFIGS["inventory-medium"])
 MAX_STEPS = config["num_steps"]
-SUCCESS_SCORE_THRESHOLD = 0.8  # Target Service Level
+SUCCESS_SCORE_THRESHOLD = 0.8 
 
 SYSTEM_PROMPT = """
-You are a Lead Supply Chain Strategist. Manage inventory for a multi-warehouse network.
-Goal: Maintain Service Level > 90% and minimize total cost.
+You are a Lead Supply Chain Strategist managing a multi-node warehouse network.
+GOAL: Maintain Service Level > 92% across all nodes while minimizing operational costs.
 
-MODES:
-- 'order <id> <qty> normal': 3-4 step lead time.
-- 'order <id> <qty> expedited': 1 step lead time, 50% extra cost.
+COMMANDS:
+1. 'order <dest_id> <qty> [priority]' -> Replenish from Global Supplier.
+2. 'transfer <from_id> <to_id> <qty> [priority]' -> Transship between warehouses.
 
-Respond strictly in the format: order <warehouse_id> <quantity> [priority]
+PRIORITY: 'normal' (standard lead time) or 'expedited' (1-cycle delivery, high cost).
+
+STRICT RESPONSE FORMAT: <command> <args...>
+Example: 'order 0 500 expedited' or 'transfer 2 0 300 normal'
 """
 
 def log_start(task: str, env: str, model: str):
@@ -49,8 +52,6 @@ def log_step(step: int, action: str, reward: float, done: bool, error: str = "nu
 
 def log_end(success: bool, steps: int, score: float, rewards: List[float], task: str):
     success_str = "true" if success else "false"
-    # CLAMP: Ensure score is strictly between 0.01 and 0.99 per hackathon rules
-    # This prevents :.2f from rounding to 0.00 or 1.00
     clamped_score = max(0.01, min(0.99, score))
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(f"[END] task={task} success={success_str} steps={steps} score={clamped_score:.2f} rewards={rewards_str}", flush=True)
@@ -75,42 +76,47 @@ async def main():
         obs = reset_resp.observation
 
         for step in range(1, MAX_STEPS + 1):
-            # Prompt the model
             try:
                 state_summary = {
-                    "step": obs.current_step,
+                    "cycle": obs.current_step,
                     "service_level": f"{obs.service_level:.1%}",
-                    "warehouses": obs.warehouses,
+                    "nodes": obs.warehouses,
                     "forecast": obs.forecasted_demand,
-                    "pending": obs.pending_orders
+                    "pending": obs.pending_orders,
+                    "status": obs.last_action
                 }
                 
                 response = client.chat.completions.create(
                     model=MODEL_NAME,
                     messages=[
                         {"role": "system", "content": SYSTEM_PROMPT},
-                        {"role": "user", "content": f"State: {state_summary}"}
+                        {"role": "user", "content": f"Current State: {json.dumps(state_summary)}"}
                     ],
-                    max_tokens=50,
+                    max_tokens=60,
                     temperature=0.1
                 )
                 action_text = response.choices[0].message.content.strip().lower()
             except Exception as e:
                 action_text = "order 0 0"
 
-            # Parse action
+            # Parse action logic for order and transfer
             parts = action_text.split()
-            w_id, qty, priority = 0, 0.0, "normal"
-            if "order" in parts:
-                idx = parts.index("order")
-                try:
-                    if len(parts) > idx + 1: w_id = int(parts[idx+1])
-                    if len(parts) > idx + 2: qty = float(parts[idx+2])
-                    if len(parts) > idx + 3: priority = parts[idx+3] if parts[idx+3] in ["normal", "expedited"] else "normal"
-                except: pass
+            dest_id, origin_id, qty, priority = 0, -1, 0.0, "normal"
+            
+            try:
+                if "order" in parts:
+                    dest_id = int(parts[1])
+                    qty = float(parts[2])
+                    if len(parts) > 3: priority = parts[3] if parts[3] in ["normal", "expedited"] else "normal"
+                elif "transfer" in parts:
+                    origin_id = int(parts[1])
+                    dest_id = int(parts[2])
+                    qty = float(parts[3])
+                    if len(parts) > 4: priority = parts[4] if parts[4] in ["normal", "expedited"] else "normal"
+            except:
+                pass
 
-            # Step environment
-            action = Action(dest_warehouse=w_id, quantity=qty, priority=priority)
+            action = Action(dest_warehouse=dest_id, origin_warehouse=origin_id, quantity=qty, priority=priority)
             step_resp = await env.step(action)
             obs = step_resp.observation
             
@@ -129,11 +135,12 @@ async def main():
         elif TASK_NAME == "inventory-medium": score = grade_medium(final_state)
         else: score = grade_hard(final_state)
         
-        success = score >= 0.7  # Define success threshold
+        success = score >= 0.7 
 
     finally:
         await env.close()
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards, task=TASK_NAME)
 
 if __name__ == "__main__":
+    import json
     asyncio.run(main())

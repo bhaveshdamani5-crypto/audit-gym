@@ -160,10 +160,28 @@ async def dashboard():
                 0% { background-position: -200% 0; }
                 100% { background-position: 200% 0; }
             }
+            
+            #shock-banner {
+                position: fixed;
+                top: 0; left: 0; width: 100%;
+                z-index: 1000;
+                display: none;
+                background: rgba(244, 63, 94, 0.9);
+                color: white;
+                text-align: center;
+                padding: 10px;
+                font-weight: 800;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                animation: blink 1s infinite;
+            }
+            @keyframes blink {
+                0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; }
+            }
         </style>
     </head>
     <body class="min-h-screen flex flex-col">
-        <!-- Overlay to ensure readability -->
+        <div id="shock-banner">SYSTEMIC SHOCK DETECTED - LOGISTICS CALIBRATION REQUIRED</div>
         <div class="fixed inset-0 bg-black/40 z-[-1]"></div>
         
         <!-- Top Navigation -->
@@ -173,7 +191,7 @@ async def dashboard():
                     <i data-lucide="activity" class="text-white w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">InventoryGym <span class="text-blue-500 font-normal italic">Pro</span></h1>
+                    <h1 class="text-xl font-bold tracking-tight">InventoryGym <span class="text-blue-500 font-normal italic">Alpha Elite</span></h1>
                     <div class="flex items-center gap-2">
                         <div class="pulse-online"></div>
                         <span class="text-[10px] uppercase tracking-widest text-blue-400/80 font-bold">Strategic Nexus Active</span>
@@ -218,14 +236,14 @@ async def dashboard():
                     <div class="absolute top-8 left-8 z-10">
                         <div class="flex items-center gap-3 mb-1">
                             <span class="p-2 bg-blue-500/10 rounded-lg"><i data-lucide="globe" class="text-blue-400 w-5 h-5"></i></span>
-                            <h3 class="text-xl font-bold">Supply Chain Topology</h3>
+                            <h3 class="text-xl font-bold">Network Topology & Real-time Flow</h3>
                         </div>
-                        <p class="text-slate-500 text-xs ml-11">Real-time node telemetry & transport vectors</p>
+                        <p class="text-slate-500 text-xs ml-11">Transshipment vectors & dynamic load status</p>
                     </div>
                     
                     <!-- Dynamic Network Viz -->
                     <div class="absolute inset-0 flex items-center justify-center p-12 mt-12">
-                        <svg viewBox="0 0 800 400" class="w-full h-full drop-shadow-2xl">
+                        <svg viewBox="0 0 800 400" id="network-svg" class="w-full h-full drop-shadow-2xl">
                             <defs>
                                 <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
                                     <feGaussianBlur stdDeviation="4" result="blur" />
@@ -240,22 +258,16 @@ async def dashboard():
                             
                             <!-- Central Flux / Supplier -->
                             <g transform="translate(100, 200)" filter="url(#glow)">
-                                <circle r="20" fill="rgba(255,255,255,0.05)" stroke="white" stroke-width="1" stroke-dasharray="2 2">
-                                    <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="10s" repeatCount="indefinite" />
-                                </circle>
+                                <circle r="20" fill="rgba(255,255,255,0.05)" stroke="white" stroke-width="1" stroke-dasharray="2 2"></circle>
                                 <circle r="6" fill="white" />
                                 <text y="35" text-anchor="middle" fill="white" font-size="10" font-family="Space Grotesk" font-weight="bold">SUPPLIER-01</text>
                             </g>
                             
-                            <!-- Static Connections -->
                             <g id="map-links"></g>
-
-                            <!-- Dynamic Warehouse Nodes -->
                             <g id="map-nodes"></g>
                         </svg>
                     </div>
 
-                    <!-- Environment Status Overlay -->
                     <div class="absolute bottom-6 right-8 flex gap-4">
                         <div class="glass-panel px-4 py-2 rounded-xl border-white/5 flex items-center gap-3">
                             <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Load Velocity</span>
@@ -264,25 +276,15 @@ async def dashboard():
                     </div>
                 </div>
 
-                <!-- Warehouse Telemetry Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="warehouse-grid">
-                    <!-- Dynamic -->
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="warehouse-grid"></div>
 
-                <!-- Analytics Row -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="glass-panel rounded-3xl p-6 border-white/5 relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Demand Forecast Matrix</h3>
-                            <i data-lucide="trending-up" class="w-4 h-4 text-blue-500"></i>
-                        </div>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Aggregate Demand Cycle</h3>
                         <div id="demand-chart" style="height: 250px;"></div>
                     </div>
                     <div class="glass-panel rounded-3xl p-6 border-white/5 relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Inventory Distribution</h3>
-                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-500"></i>
-                        </div>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Unit Distribution</h3>
                         <div id="inventory-chart" style="height: 250px;"></div>
                     </div>
                 </div>
@@ -291,7 +293,6 @@ async def dashboard():
             <!-- Right Panel: Strategic Controls -->
             <div class="col-span-12 xl:col-span-4 space-y-6 flex flex-col h-full">
                 
-                <!-- Decision Terminal -->
                 <div class="glass-panel rounded-3xl p-8 cyber-border border-white/10 shadow-blue-900/10">
                     <div class="flex items-center gap-3 mb-8">
                         <span class="p-2 bg-amber-500/10 rounded-lg"><i data-lucide="zap" class="text-amber-400 w-5 h-5"></i></span>
@@ -299,21 +300,24 @@ async def dashboard():
                     </div>
                     
                     <div class="space-y-6">
-                        <div class="space-y-3">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Destination Node</label>
-                            <div class="relative group">
-                                <select id="action-dest" class="w-full bg-slate-900/50 border border-white/10 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer appearance-none">
-                                    <!-- Dynamic -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Origin</label>
+                                <select id="action-origin" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white outline-none">
+                                    <option value="-1">Global Supplier</option>
                                 </select>
-                                <i data-lucide="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none group-hover:text-blue-500 transition-colors"></i>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Destination</label>
+                                <select id="action-dest" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white outline-none"></select>
                             </div>
                         </div>
                         
-                        <div class="space-y-4 pt-2">
+                        <div class="space-y-4">
                             <div class="flex justify-between items-end mb-2">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Allocation Volume</label>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Inventory Allocation</label>
                                 <div class="flex items-baseline gap-1">
-                                    <span id="qty-disp" class="text-2xl font-bold text-blue-400 leading-none">500</span>
+                                    <span id="qty-disp" class="text-2xl font-bold text-blue-400">500</span>
                                     <span class="text-[10px] text-slate-600 font-bold">UNITS</span>
                                 </div>
                             </div>
@@ -324,30 +328,26 @@ async def dashboard():
 
                         <div class="grid grid-cols-2 gap-4 mt-8">
                             <button onclick="runStep('normal')" class="btn-glow group py-5 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-all border border-white/5 flex flex-col items-center gap-1">
-                                <span class="text-sm group-hover:text-blue-400 transition-colors">Standard</span>
-                                <span class="text-[10px] text-slate-600 font-normal uppercase tracking-widest">4 Cycle Lead</span>
+                                <span class="text-sm">Standard Order</span>
+                                <span class="text-[10px] text-slate-600 font-normal">Base Lead Time</span>
                             </button>
                             <button onclick="runStep('expedited')" class="btn-glow group py-5 bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 rounded-2xl font-bold transition-all shadow-xl shadow-blue-900/40 flex flex-col items-center gap-1">
-                                <span class="text-sm">Expedited</span>
-                                <span class="text-[10px] text-blue-200/60 font-normal uppercase tracking-widest">1 Cycle Lead</span>
+                                <span class="text-sm">Rush / Expedite</span>
+                                <span class="text-[10px] text-blue-200/60 font-normal">Cycle 1 Delivery</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Intelligence Log -->
                 <div class="glass-panel rounded-3xl p-8 flex-grow flex flex-col min-h-[450px] border-white/5 overflow-hidden">
                     <div class="flex justify-between items-center mb-6">
                         <div class="flex items-center gap-3">
                             <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
                             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Neural Stream</h3>
                         </div>
-                        <span class="text-[10px] text-slate-600 font-mono" id="sim-id">#IDX-8842-OMN</span>
                     </div>
                     
-                    <div id="terminal" class="flex-grow overflow-y-auto custom-scrollbar space-y-4 pr-2">
-                        <!-- log entries -->
-                    </div>
+                    <div id="terminal" class="flex-grow overflow-y-auto custom-scrollbar space-y-4 pr-2"></div>
                     
                     <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center">
                         <div>
@@ -369,7 +369,7 @@ async def dashboard():
         </main>
 
         <footer class="p-8 text-center text-slate-600 text-[10px] uppercase tracking-[0.2em] font-medium border-t border-white/5">
-            Neural Inventory Management System &bull; Version 1.0.4-Alpha &bull; 2026 Space Intel
+            Neural Inventory Management System &bull; Version 1.2.0-Elite &bull; 2026 Space Intel
         </footer>
 
         <script>
@@ -380,24 +380,18 @@ async def dashboard():
                 const res = await fetch('/reset', { method: 'POST' });
                 const data = await res.json();
                 history = { step: [], demand: [], cost: [], sl: [] };
-                
-                // Clear terminal
                 document.getElementById('terminal').innerHTML = '';
-                log('System re-initialized. Protocols cleared.', 'info');
-                log('Synchronizing node telemetry...', 'info');
-                
+                log('System re-initialized. Deep protocols active.', 'info');
                 updateUI(data.observation);
             }
 
             async function runStep(priority) {
                 const action = {
                     dest_warehouse: parseInt(document.getElementById('action-dest').value),
+                    origin_warehouse: parseInt(document.getElementById('action-origin').value),
                     quantity: parseFloat(document.getElementById('action-qty').value),
                     priority: priority
                 };
-                
-                const nodeName = lastObservation?.warehouses.find(w => w.id === action.dest_warehouse)?.name || 'Unknown';
-                log(`Command Issued: Dispatch ${action.quantity} units to ${nodeName} (${priority})`, 'action');
                 
                 const res = await fetch('/step', {
                     method: 'POST',
@@ -406,14 +400,9 @@ async def dashboard():
                 });
                 const data = await res.json();
                 
-                if (data.done) {
-                    log('STRATEGIC OBJECTIVE REACHED. Terminating cycle.', 'success');
-                    log(`EOP Performance Index: SL ${ (data.observation.service_level*100).toFixed(1) }%`, 'success');
-                } else if (data.reward < 0) {
-                    log(`Inefficiency Detected: Penalty of ${Math.abs(data.reward)} applied to balance.`, 'warn');
-                } else {
-                    log(`Optimal Step Execution: Reward +${data.reward} realized.`, 'success');
-                }
+                if (data.done) log('OBJECTIVE REACHED. Terminating cycle.', 'success');
+                else if (data.reward < 0) log(`Efficiency Penalty: ${Math.abs(data.reward)} applied.`, 'warn');
+                else log(`Optimal Execution: Reward +${data.reward}`, 'success');
                 
                 updateUI(data.observation, data.reward);
             }
@@ -422,28 +411,18 @@ async def dashboard():
                 const terminal = document.getElementById('terminal');
                 const div = document.createElement('div');
                 div.className = 'flex gap-4 group';
-                
-                let icon = 'info';
-                let color = 'text-blue-400';
-                let bg = 'bg-blue-500/10';
-                
+                let icon = 'info', color = 'text-blue-400', bg = 'bg-blue-500/10';
                 if (type === 'action') { icon = 'zap'; color = 'text-amber-400'; bg = 'bg-amber-500/10'; }
                 if (type === 'success') { icon = 'check-circle'; color = 'text-emerald-400'; bg = 'bg-emerald-500/10'; }
                 if (type === 'warn') { icon = 'alert-triangle'; color = 'text-rose-400'; bg = 'bg-rose-500/10'; }
-
                 div.innerHTML = `
                     <div class="flex-shrink-0 w-8 h-8 rounded-lg ${bg} flex items-center justify-center transition-transform group-hover:scale-110">
                         <i data-lucide="${icon}" class="${color} w-4 h-4"></i>
                     </div>
-                    <div class="pt-1">
-                        <p class="text-xs ${color} font-medium leading-relaxed">${msg}</p>
-                        <p class="text-[9px] text-slate-600 font-mono mt-1 opacity-60">${new Date().toLocaleTimeString()}</p>
-                    </div>
+                    <div class="pt-1"><p class="text-xs ${color} font-medium leading-relaxed">${msg}</p></div>
                 `;
                 terminal.prepend(div);
                 lucide.createIcons();
-                
-                // Keep only last 20 logs
                 if (terminal.children.length > 20) terminal.removeChild(terminal.lastChild);
             }
 
@@ -451,30 +430,34 @@ async def dashboard():
                 lastObservation = obs;
                 lucide.createIcons();
                 
-                // Counters
                 animateCounter('top-cost', obs.total_cost, '$');
                 animateCounter('top-sl', obs.service_level * 100, '', '%');
                 animateCounter('top-reward', reward, reward >= 0 ? '+' : '');
                 
-                document.getElementById('top-reward').className = `text-lg font-bold ${reward >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
                 document.getElementById('step-counter').innerText = `${obs.current_step.toString().padStart(2, '0')} / 100`;
                 document.getElementById('step-progress').style.width = `${obs.current_step}%`;
 
-                // Smart Check: Stockout Warning
-                obs.warehouses.forEach(w => {
-                    if (w.utilization < 0.1) {
-                        log(`CRITICAL: Stockout risk detected at ${w.name}`, 'warn');
-                    }
-                });
+                // Shock UI
+                const banner = document.getElementById('shock-banner');
+                if (obs.last_action && obs.last_action.includes('SHOCK')) {
+                    banner.style.display = 'block';
+                    banner.innerText = obs.last_action;
+                } else {
+                    banner.style.display = 'none';
+                }
 
-                // Update Selector
-                const sel = document.getElementById('action-dest');
-                if (sel.options.length === 0) {
+                // Update Dropdowns
+                const originSel = document.getElementById('action-origin');
+                const destSel = document.getElementById('action-dest');
+                if (destSel.options.length === 0) {
                     obs.warehouses.forEach(w => {
                         const opt = document.createElement('option');
-                        opt.value = w.id;
-                        opt.innerText = w.name;
-                        sel.appendChild(opt);
+                        opt.value = w.id; opt.innerText = w.name;
+                        destSel.appendChild(opt);
+                        
+                        const opt2 = document.createElement('option');
+                        opt2.value = w.id; opt2.innerText = w.name;
+                        originSel.appendChild(opt2);
                     });
                 }
 
@@ -482,68 +465,40 @@ async def dashboard():
                 const grid = document.getElementById('warehouse-grid');
                 grid.innerHTML = obs.warehouses.map(w => {
                     const statusColor = w.utilization > 0.8 ? 'rose' : (w.utilization < 0.2 ? 'amber' : 'blue');
-                    const icon = w.utilization > 0.8 ? 'package-x' : (w.utilization < 0.2 ? 'alert-octagon' : 'package-check');
                     return `
-                        <div class="glass-panel rounded-2xl p-6 stat-card transition-all cursor-default border-white/5 relative overflow-hidden group">
-                            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-30 transition-opacity">
-                                <i data-lucide="${icon}" class="w-12 h-12 text-${statusColor}-400"></i>
-                            </div>
+                        <div class="glass-panel rounded-2xl p-6 stat-card border-white/5 relative overflow-hidden group">
                             <div class="flex justify-between items-start mb-6">
-                                <div>
-                                    <h4 class="font-bold text-sm tracking-tight text-slate-200">${w.name}</h4>
-                                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">${w.location}</span>
-                                </div>
-                                <div class="px-2 py-1 rounded-md bg-${statusColor}-500/10 text-[9px] font-bold uppercase tracking-widest text-${statusColor}-400 border border-${statusColor}-500/20">
-                                    ${(w.utilization * 100).toFixed(0)}% Load
-                                </div>
+                                <div><h4 class="font-bold text-sm text-slate-200">${w.name}</h4><span class="text-[10px] text-slate-500 uppercase font-bold">${w.location}</span></div>
+                                <div class="px-2 py-1 rounded-md bg-${statusColor}-500/10 text-[9px] font-bold text-${statusColor}-400 border border-${statusColor}-500/20">${(w.utilization * 100).toFixed(0)}%</div>
                             </div>
                             <div class="space-y-4">
-                                <div class="flex justify-between items-end">
-                                    <div class="space-y-1">
-                                        <p class="text-[9px] text-slate-500 uppercase font-bold">Net Stock</p>
-                                        <p class="text-xl font-bold font-heading">${w.inventory.toFixed(0)}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-[9px] text-slate-500 uppercase font-bold">Capacity</p>
-                                        <p class="text-xs font-bold text-slate-300">/ ${w.capacity}</p>
-                                    </div>
-                                </div>
-                                <div class="w-full h-1.5 bg-slate-800/50 rounded-full overflow-hidden">
-                                    <div class="h-full bg-${statusColor}-500 transition-all duration-700 shadow-[0_0_8px_rgba(var(--${statusColor}),0.5)]" style="width: ${w.utilization * 100}%"></div>
-                                </div>
+                                <div class="flex justify-between items-end"><div class="space-y-1"><p class="text-[9px] text-slate-500 uppercase font-bold">Stock</p><p class="text-xl font-bold">${w.inventory.toFixed(0)}</p></div><p class="text-[9px] text-slate-500 font-bold uppercase">/ ${w.capacity}</p></div>
+                                <div class="w-full h-1.5 bg-slate-800/50 rounded-full overflow-hidden"><div class="h-full bg-${statusColor}-500 transition-all duration-700" style="width: ${w.utilization * 100}%"></div></div>
                             </div>
                         </div>
                     `;
                 }).join('');
 
-                // Map Links & Nodes
+                // Map & Flow
                 const mapLinks = document.getElementById('map-links');
                 const mapNodes = document.getElementById('map-nodes');
-                
-                let linkHtml = '';
-                let nodeHtml = '';
+                let linkHtml = '', nodeHtml = '';
                 
                 obs.warehouses.forEach((w, i) => {
                     const tx = 350 + (i % 2 === 0 ? 0 : 250);
                     const ty = 80 + i * 80;
                     const statusColor = w.utilization > 0.8 ? '#f43f5e' : (w.utilization < 0.2 ? '#f59e0b' : '#3b82f6');
                     
-                    linkHtml += `<path d="M 120 200 C 200 200, 250 ${ty}, ${tx} ${ty}" class="node-link" stroke="url(#lineGrad)" stroke-width="1.5" fill="none" opacity="0.4" />`;
+                    linkHtml += `<path d="M 120 200 C 200 200, 250 ${ty}, ${tx} ${ty}" class="node-link" stroke="rgba(59, 130, 246, 0.4)" stroke-width="1.5" fill="none" />`;
                     
                     nodeHtml += `
                         <g transform="translate(${tx}, ${ty})" filter="url(#glow)">
-                            <circle r="12" fill="rgba(255,255,255,0.05)" stroke="${statusColor}" stroke-width="1" stroke-dasharray="2 2">
-                                <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="15s" repeatCount="indefinite" />
-                            </circle>
-                            <circle r="5" fill="${statusColor}">
-                                <animate attributeName="r" values="4;6;4" dur="3s" repeatCount="indefinite" />
-                            </circle>
+                            <circle r="12" fill="rgba(255,255,255,0.05)" stroke="${statusColor}" stroke-width="1" stroke-dasharray="2 2"></circle>
+                            <circle r="5" fill="${statusColor}"></circle>
                             <text x="20" y="4" fill="white" font-size="9" font-family="Space Grotesk" font-weight="bold">${w.name}</text>
-                            <text x="20" y="14" fill="${statusColor}" font-size="7" font-family="Space Grotesk" font-weight="bold" opacity="0.8">${(w.utilization*100).toFixed(0)}% LOAD</text>
                         </g>
                     `;
                 });
-                
                 mapLinks.innerHTML = linkHtml;
                 mapNodes.innerHTML = nodeHtml;
 
@@ -561,28 +516,8 @@ async def dashboard():
                     xaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false },
                     yaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false }
                 };
-
-                Plotly.react('demand-chart', [{
-                    x: history.step,
-                    y: history.demand,
-                    name: 'System Demand',
-                    type: 'scatter',
-                    line: { color: '#3b82f6', width: 2, shape: 'spline' },
-                    fill: 'tozeroy',
-                    fillcolor: 'rgba(59, 130, 246, 0.05)'
-                }], chartLayout);
-
-                Plotly.react('inventory-chart', [{
-                    x: obs.warehouses.map(w => w.name),
-                    y: obs.warehouses.map(w => w.inventory),
-                    type: 'bar',
-                    marker: { 
-                        color: obs.warehouses.map(w => w.utilization > 0.8 ? 'rgba(244, 63, 94, 0.6)' : 'rgba(59, 130, 246, 0.6)'),
-                        line: { color: 'rgba(255,255,255,0.1)', width: 1 }
-                    },
-                    text: obs.warehouses.map(w => w.inventory.toFixed(0)),
-                    textposition: 'auto',
-                }], { ...chartLayout, yaxis: { ...chartLayout.yaxis, range: [0, 4500] } });
+                Plotly.react('demand-chart', [{ x: history.step, y: history.demand, type: 'scatter', line: { color: '#3b82f6', width: 2, shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.05)' }], chartLayout);
+                Plotly.react('inventory-chart', [{ x: obs.warehouses.map(w => w.name), y: obs.warehouses.map(w => w.inventory), type: 'bar', marker: { color: 'rgba(59, 130, 246, 0.6)' } }], chartLayout);
                 
                 lucide.createIcons();
             }
@@ -591,12 +526,8 @@ async def dashboard():
                 const el = document.getElementById(id);
                 const current = parseFloat(el.innerText.replace(/[^\d.-]/g, '')) || 0;
                 gsap.to({ val: current }, {
-                    val: target,
-                    duration: 1.5,
-                    ease: "power2.out",
-                    onUpdate: function() {
-                        el.innerText = prefix + (id.includes('sl') ? this.targets()[0].val.toFixed(1) : this.targets()[0].val.toFixed(2)) + suffix;
-                    }
+                    val: target, duration: 1.5, ease: "power2.out",
+                    onUpdate: function() { el.innerText = prefix + (id.includes('sl') ? this.targets()[0].val.toFixed(1) : this.targets()[0].val.toFixed(2)) + suffix; }
                 });
             }
 

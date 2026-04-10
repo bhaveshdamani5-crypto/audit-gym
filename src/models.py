@@ -29,10 +29,11 @@ class Order(BaseModel):
 
 
 class Action(BaseModel):
-    """Agent action: order replenishment from supplier"""
+    """Agent action: order replenishment from supplier OR transshipment between nodes"""
     dest_warehouse: int
     quantity: float
-    priority: str = "normal"  # "normal" or "expedited" (costs extra)
+    origin_warehouse: int = -1  # -1 for Supplier, else Warehouse ID
+    priority: str = "normal"    # "normal" or "expedited" (costs extra)
 
 
 class InventoryObservation(BaseModel):
