@@ -1,3 +1,13 @@
+---
+title: InventoryGym Elite
+emoji: 📦
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_file: app.py
+pinned: false
+---
+
 # 🛡️ InventoryGym Alpha Elite (Meta OpenEnv Finals)
 
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-Compatible-blueviolet)](https://github.com/facebookresearch/openenv)
