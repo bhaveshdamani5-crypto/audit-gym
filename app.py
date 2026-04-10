@@ -77,7 +77,6 @@ async def dashboard():
 
             h1, h2, h3, .font-heading { font-family: 'Space Grotesk', sans-serif; }
 
-            /* Glassmorphism with deep blur */
             .glass-panel {
                 background: var(--card-bg);
                 backdrop-filter: blur(20px);
@@ -137,30 +136,8 @@ async def dashboard():
                 to { stroke-dashoffset: 0; }
             }
 
-            .btn-glow {
-                position: relative;
-                overflow: hidden;
-            }
-            .btn-glow::before {
-                content: '';
-                position: absolute;
-                top: -50%; left: -50%; width: 200%; height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-                opacity: 0; transition: opacity 0.3s;
-            }
-            .btn-glow:hover::before { opacity: 1; }
             .btn-glow:hover { box-shadow: 0 0 20px var(--primary-glow); }
 
-            .shimmer {
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-                background-size: 200% 100%;
-                animation: shimmer 2s infinite;
-            }
-            @keyframes shimmer {
-                0% { background-position: -200% 0; }
-                100% { background-position: 200% 0; }
-            }
-            
             #shock-banner {
                 position: fixed;
                 top: 0; left: 0; width: 100%;
@@ -191,34 +168,39 @@ async def dashboard():
                     <i data-lucide="activity" class="text-white w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">InventoryGym <span class="text-blue-500 font-normal italic">Alpha Elite</span></h1>
+                    <h1 class="text-xl font-bold tracking-tight">InventoryGym <span class="text-blue-500 font-normal italic">Elite</span></h1>
                     <div class="flex items-center gap-2">
                         <div class="pulse-online"></div>
-                        <span class="text-[10px] uppercase tracking-widest text-blue-400/80 font-bold">Strategic Nexus Active</span>
+                        <span class="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Strategic Nexus Active</span>
                     </div>
                 </div>
             </div>
             
-            <div class="hidden md:flex gap-12">
-                <div class="text-center group">
-                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 group-hover:text-blue-400 transition-colors">Cumulative Reward</p>
-                    <p id="top-reward" class="text-lg font-bold text-emerald-400">+0.000</p>
+            <div class="hidden md:flex gap-10">
+                <div class="text-center group" title="Internal RL Reward (Used for training)">
+                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-1">Step Reward</p>
+                    <p id="top-reward" class="text-base font-bold text-emerald-400">+0.000</p>
                 </div>
-                <div class="h-10 w-[1px] bg-slate-800"></div>
-                <div class="text-center group">
-                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 group-hover:text-blue-400 transition-colors">Operational Cost</p>
-                    <p id="top-cost" class="text-lg font-bold">$0.00</p>
+                <div class="h-8 w-[1px] bg-slate-800"></div>
+                <div class="text-center group" title="Official Hackathon Score (Scaled 0.01 - 0.99)">
+                    <p class="text-[9px] text-amber-500 uppercase font-bold tracking-tighter mb-1">Compliance Score</p>
+                    <p id="top-score" class="text-base font-bold text-amber-400">0.01</p>
                 </div>
-                <div class="h-10 w-[1px] bg-slate-800"></div>
+                <div class="h-8 w-[1px] bg-slate-800"></div>
                 <div class="text-center group">
-                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 group-hover:text-blue-400 transition-colors">Service Reliability</p>
-                    <p id="top-sl" class="text-lg font-bold text-blue-400">100.0%</p>
+                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-1">Service Lvl</p>
+                    <p id="top-sl" class="text-base font-bold text-blue-400">100.0%</p>
+                </div>
+                <div class="h-8 w-[1px] bg-slate-800"></div>
+                <div class="text-center group">
+                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-1">System Cost</p>
+                    <p id="top-cost" class="text-base font-bold text-slate-300">$0</p>
                 </div>
             </div>
 
             <div class="flex gap-4">
-                <button onclick="resetEnv()" class="p-3 hover:bg-white/10 rounded-xl transition-all text-slate-400 group" title="Reset Simulation">
-                    <i data-lucide="rotate-ccw" class="w-5 h-5 group-hover:rotate-[-45deg] transition-transform"></i>
+                <button onclick="resetEnv()" class="p-3 hover:bg-white/10 rounded-xl transition-all text-slate-400">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
                 </button>
                 <div class="w-10 h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
                     <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=StrategyAlpha&backgroundColor=3b82f6" alt="AI Agent">
@@ -230,147 +212,77 @@ async def dashboard():
             
             <!-- Left Panel -->
             <div class="col-span-12 xl:col-span-8 space-y-6">
-                
                 <!-- Visualization Hub -->
                 <div class="glass-panel rounded-3xl p-8 h-[450px] relative overflow-hidden group border border-white/5">
                     <div class="absolute top-8 left-8 z-10">
                         <div class="flex items-center gap-3 mb-1">
                             <span class="p-2 bg-blue-500/10 rounded-lg"><i data-lucide="globe" class="text-blue-400 w-5 h-5"></i></span>
-                            <h3 class="text-xl font-bold">Network Topology & Real-time Flow</h3>
+                            <h3 class="text-xl font-bold">Network Topology Flow</h3>
                         </div>
-                        <p class="text-slate-500 text-xs ml-11">Transshipment vectors & dynamic load status</p>
                     </div>
-                    
-                    <!-- Dynamic Network Viz -->
                     <div class="absolute inset-0 flex items-center justify-center p-12 mt-12">
                         <svg viewBox="0 0 800 400" id="network-svg" class="w-full h-full drop-shadow-2xl">
                             <defs>
-                                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                                    <feGaussianBlur stdDeviation="4" result="blur" />
-                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                                </filter>
-                                <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" style="stop-color:rgba(59, 130, 246, 0)" />
-                                    <stop offset="50%" style="stop-color:rgba(59, 130, 246, 0.5)" />
-                                    <stop offset="100%" style="stop-color:rgba(59, 130, 246, 0.8)" />
-                                </linearGradient>
+                                <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
                             </defs>
-                            
-                            <!-- Central Flux / Supplier -->
                             <g transform="translate(100, 200)" filter="url(#glow)">
-                                <circle r="20" fill="rgba(255,255,255,0.05)" stroke="white" stroke-width="1" stroke-dasharray="2 2"></circle>
-                                <circle r="6" fill="white" />
-                                <text y="35" text-anchor="middle" fill="white" font-size="10" font-family="Space Grotesk" font-weight="bold">SUPPLIER-01</text>
+                                <circle r="6" fill="white" /><text y="35" text-anchor="middle" fill="white" font-size="10" font-family="Space Grotesk" font-weight="bold">SUPPLIER</text>
                             </g>
-                            
                             <g id="map-links"></g>
                             <g id="map-nodes"></g>
                         </svg>
-                    </div>
-
-                    <div class="absolute bottom-6 right-8 flex gap-4">
-                        <div class="glass-panel px-4 py-2 rounded-xl border-white/5 flex items-center gap-3">
-                            <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Load Velocity</span>
-                            <span class="text-blue-400 font-bold" id="load-velocity">4.2x</span>
-                        </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="warehouse-grid"></div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="glass-panel rounded-3xl p-6 border-white/5 relative overflow-hidden">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Aggregate Demand Cycle</h3>
+                    <div class="glass-panel rounded-3xl p-6 relative overflow-hidden">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Real-time Demand History</h3>
                         <div id="demand-chart" style="height: 250px;"></div>
                     </div>
-                    <div class="glass-panel rounded-3xl p-6 border-white/5 relative overflow-hidden">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Unit Distribution</h3>
+                    <div class="glass-panel rounded-3xl p-6 relative overflow-hidden">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Live Inventory Stock</h3>
                         <div id="inventory-chart" style="height: 250px;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Panel: Strategic Controls -->
+            <!-- Right Panel -->
             <div class="col-span-12 xl:col-span-4 space-y-6 flex flex-col h-full">
-                
                 <div class="glass-panel rounded-3xl p-8 cyber-border border-white/10 shadow-blue-900/10">
-                    <div class="flex items-center gap-3 mb-8">
-                        <span class="p-2 bg-amber-500/10 rounded-lg"><i data-lucide="zap" class="text-amber-400 w-5 h-5"></i></span>
-                        <h3 class="text-xl font-bold">Strategic Command</h3>
-                    </div>
-                    
+                    <h3 class="text-xl font-bold mb-8 flex items-center gap-3"><i data-lucide="zap" class="text-amber-400"></i> Command Center</h3>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-2">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Origin</label>
-                                <select id="action-origin" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white outline-none">
-                                    <option value="-1">Global Supplier</option>
-                                </select>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Origin</label>
+                                <select id="action-origin" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white outline-none"><option value="-1">Supplier</option></select>
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Destination</label>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Target</label>
                                 <select id="action-dest" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white outline-none"></select>
                             </div>
                         </div>
-                        
                         <div class="space-y-4">
-                            <div class="flex justify-between items-end mb-2">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Inventory Allocation</label>
-                                <div class="flex items-baseline gap-1">
-                                    <span id="qty-disp" class="text-2xl font-bold text-blue-400">500</span>
-                                    <span class="text-[10px] text-slate-600 font-bold">UNITS</span>
-                                </div>
-                            </div>
-                            <input type="range" id="action-qty" min="0" max="2500" step="50" value="500" 
-                                class="w-full accent-blue-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none"
-                                oninput="document.getElementById('qty-disp').innerText = this.value">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase flex justify-between">Qty <span id="qty-disp" class="text-blue-400 font-bold">500</span></label>
+                            <input type="range" id="action-qty" min="0" max="2500" step="50" value="500" class="w-full accent-blue-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none" oninput="document.getElementById('qty-disp').innerText = this.value">
                         </div>
-
-                        <div class="grid grid-cols-2 gap-4 mt-8">
-                            <button onclick="runStep('normal')" class="btn-glow group py-5 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-all border border-white/5 flex flex-col items-center gap-1">
-                                <span class="text-sm">Standard Order</span>
-                                <span class="text-[10px] text-slate-600 font-normal">Base Lead Time</span>
-                            </button>
-                            <button onclick="runStep('expedited')" class="btn-glow group py-5 bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 rounded-2xl font-bold transition-all shadow-xl shadow-blue-900/40 flex flex-col items-center gap-1">
-                                <span class="text-sm">Rush / Expedite</span>
-                                <span class="text-[10px] text-blue-200/60 font-normal">Cycle 1 Delivery</span>
-                            </button>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="runStep('normal')" class="py-5 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-all border border-white/5">Standard</button>
+                            <button onclick="runStep('expedited')" class="py-5 bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 rounded-2xl font-bold transition-all shadow-xl">Expedited</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="glass-panel rounded-3xl p-8 flex-grow flex flex-col min-h-[450px] border-white/5 overflow-hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="flex items-center gap-3">
-                            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Neural Stream</h3>
-                        </div>
-                    </div>
-                    
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Events Log</h3>
                     <div id="terminal" class="flex-grow overflow-y-auto custom-scrollbar space-y-4 pr-2"></div>
-                    
                     <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center">
-                        <div>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Cycle Progression</p>
-                            <div class="flex items-center gap-3">
-                                <div class="w-32 h-1 bg-slate-800 rounded-full overflow-hidden">
-                                    <div id="step-progress" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                                <span class="text-xs font-mono font-bold" id="step-counter">00 / 100</span>
-                            </div>
-                        </div>
-                        <div class="flex -space-x-2">
-                            <div class="w-8 h-8 rounded-full border-2 border-slate-900 bg-blue-500 flex items-center justify-center text-[10px] font-bold">AI</div>
-                            <div class="w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-bold">BH</div>
-                        </div>
+                        <div class="flex items-center gap-3"><div class="w-32 h-1 bg-slate-800 rounded-full overflow-hidden"><div id="step-progress" class="h-full bg-blue-500 transition-all duration-500"></div></div><span class="text-xs font-mono font-bold" id="step-counter">00 / 100</span></div>
                     </div>
                 </div>
             </div>
         </main>
-
-        <footer class="p-8 text-center text-slate-600 text-[10px] uppercase tracking-[0.2em] font-medium border-t border-white/5">
-            Neural Inventory Management System &bull; Version 1.2.0-Elite &bull; 2026 Space Intel
-        </footer>
 
         <script>
             let history = { step: [], demand: [], cost: [], sl: [] };
@@ -381,7 +293,7 @@ async def dashboard():
                 const data = await res.json();
                 history = { step: [], demand: [], cost: [], sl: [] };
                 document.getElementById('terminal').innerHTML = '';
-                log('System re-initialized. Deep protocols active.', 'info');
+                log('System re-initialized.', 'info');
                 updateUI(data.observation);
             }
 
@@ -392,37 +304,22 @@ async def dashboard():
                     quantity: parseFloat(document.getElementById('action-qty').value),
                     priority: priority
                 };
-                
-                const res = await fetch('/step', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(action)
-                });
+                const res = await fetch('/step', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action) });
                 const data = await res.json();
-                
-                if (data.done) log('OBJECTIVE REACHED. Terminating cycle.', 'success');
-                else if (data.reward < 0) log(`Efficiency Penalty: ${Math.abs(data.reward)} applied.`, 'warn');
-                else log(`Optimal Execution: Reward +${data.reward}`, 'success');
-                
+                if (data.done) log('Episode Complete!', 'success');
+                else log(`Reward: ${data.reward > 0 ? '+' : ''}${data.reward}`, data.reward >= 0 ? 'success' : 'warn');
                 updateUI(data.observation, data.reward);
             }
 
             function log(msg, type) {
                 const terminal = document.getElementById('terminal');
                 const div = document.createElement('div');
-                div.className = 'flex gap-4 group';
-                let icon = 'info', color = 'text-blue-400', bg = 'bg-blue-500/10';
-                if (type === 'action') { icon = 'zap'; color = 'text-amber-400'; bg = 'bg-amber-500/10'; }
-                if (type === 'success') { icon = 'check-circle'; color = 'text-emerald-400'; bg = 'bg-emerald-500/10'; }
-                if (type === 'warn') { icon = 'alert-triangle'; color = 'text-rose-400'; bg = 'bg-rose-500/10'; }
-                div.innerHTML = `
-                    <div class="flex-shrink-0 w-8 h-8 rounded-lg ${bg} flex items-center justify-center transition-transform group-hover:scale-110">
-                        <i data-lucide="${icon}" class="${color} w-4 h-4"></i>
-                    </div>
-                    <div class="pt-1"><p class="text-xs ${color} font-medium leading-relaxed">${msg}</p></div>
-                `;
+                div.className = 'flex gap-4';
+                let color = 'text-blue-400';
+                if (type === 'success') color = 'text-emerald-400';
+                if (type === 'warn') color = 'text-rose-400';
+                div.innerHTML = `<div class="pt-1"><p class="text-xs ${color} font-medium">${msg}</p></div>`;
                 terminal.prepend(div);
-                lucide.createIcons();
                 if (terminal.children.length > 20) terminal.removeChild(terminal.lastChild);
             }
 
@@ -430,108 +327,72 @@ async def dashboard():
                 lastObservation = obs;
                 lucide.createIcons();
                 
+                animateCounter('top-reward', reward, reward >= 0 ? '+' : '');
                 animateCounter('top-cost', obs.total_cost, '$');
                 animateCounter('top-sl', obs.service_level * 100, '', '%');
-                animateCounter('top-reward', reward, reward >= 0 ? '+' : '');
                 
+                // Calculate estimated Official Compliance Score (0.01 - 0.99)
+                // Using approximate weights: 60% SL, 40% Cost Efficiency
+                const slScore = obs.service_level >= 0.88 ? 1.0 : Math.pow(obs.service_level / 0.88, 2);
+                const costBudget = 40000;
+                const costScore = Math.min(1.0, costBudget / Math.max(obs.total_cost, 1));
+                const composite = (0.6 * slScore) + (0.4 * costScore);
+                const clamped = Math.max(0.01, Math.min(0.99, composite));
+                animateCounter('top-score', clamped, '');
+
                 document.getElementById('step-counter').innerText = `${obs.current_step.toString().padStart(2, '0')} / 100`;
                 document.getElementById('step-progress').style.width = `${obs.current_step}%`;
 
-                // Shock UI
-                const banner = document.getElementById('shock-banner');
                 if (obs.last_action && obs.last_action.includes('SHOCK')) {
-                    banner.style.display = 'block';
-                    banner.innerText = obs.last_action;
+                    document.getElementById('shock-banner').style.display = 'block';
+                    document.getElementById('shock-banner').innerText = obs.last_action;
                 } else {
-                    banner.style.display = 'none';
+                    document.getElementById('shock-banner').style.display = 'none';
                 }
 
-                // Update Dropdowns
-                const originSel = document.getElementById('action-origin');
-                const destSel = document.getElementById('action-dest');
-                if (destSel.options.length === 0) {
+                if (document.getElementById('action-dest').options.length === 0) {
                     obs.warehouses.forEach(w => {
-                        const opt = document.createElement('option');
-                        opt.value = w.id; opt.innerText = w.name;
-                        destSel.appendChild(opt);
-                        
-                        const opt2 = document.createElement('option');
-                        opt2.value = w.id; opt2.innerText = w.name;
-                        originSel.appendChild(opt2);
+                        const opt = document.createElement('option'); opt.value = w.id; opt.innerText = w.name;
+                        document.getElementById('action-dest').appendChild(opt);
+                        const opt2 = document.createElement('option'); opt2.value = w.id; opt2.innerText = w.name;
+                        document.getElementById('action-origin').appendChild(opt2);
                     });
                 }
 
-                // Warehouse Grid
-                const grid = document.getElementById('warehouse-grid');
-                grid.innerHTML = obs.warehouses.map(w => {
-                    const statusColor = w.utilization > 0.8 ? 'rose' : (w.utilization < 0.2 ? 'amber' : 'blue');
-                    return `
-                        <div class="glass-panel rounded-2xl p-6 stat-card border-white/5 relative overflow-hidden group">
-                            <div class="flex justify-between items-start mb-6">
-                                <div><h4 class="font-bold text-sm text-slate-200">${w.name}</h4><span class="text-[10px] text-slate-500 uppercase font-bold">${w.location}</span></div>
-                                <div class="px-2 py-1 rounded-md bg-${statusColor}-500/10 text-[9px] font-bold text-${statusColor}-400 border border-${statusColor}-500/20">${(w.utilization * 100).toFixed(0)}%</div>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-end"><div class="space-y-1"><p class="text-[9px] text-slate-500 uppercase font-bold">Stock</p><p class="text-xl font-bold">${w.inventory.toFixed(0)}</p></div><p class="text-[9px] text-slate-500 font-bold uppercase">/ ${w.capacity}</p></div>
-                                <div class="w-full h-1.5 bg-slate-800/50 rounded-full overflow-hidden"><div class="h-full bg-${statusColor}-500 transition-all duration-700" style="width: ${w.utilization * 100}%"></div></div>
-                            </div>
-                        </div>
-                    `;
+                document.getElementById('warehouse-grid').innerHTML = obs.warehouses.map(w => {
+                    const c = w.utilization > 0.8 ? 'rose' : (w.utilization < 0.2 ? 'amber' : 'blue');
+                    return `<div class="glass-panel rounded-2xl p-6 border-white/5">
+                        <div class="flex justify-between mb-6"><div><h4 class="font-bold text-sm">${w.name}</h4><span class="text-[10px] text-slate-500 uppercase font-bold">${w.location}</span></div><div class="text-[9px] text-${c}-400">${(w.utilization*100).toFixed(0)}%</div></div>
+                        <div class="flex justify-between items-end mb-2"><div><p class="text-[9px] text-slate-500 uppercase font-bold">Stock</p><p class="text-xl font-bold">${w.inventory.toFixed(0)}</p></div><p class="text-[10px] text-slate-500">/ ${w.capacity}</p></div>
+                        <div class="w-full h-1 bg-slate-800 rounded-full"><div class="h-full bg-${c}-500 transition-all duration-700" style="width: ${w.utilization*100}%"></div></div>
+                    </div>`;
                 }).join('');
 
-                // Map & Flow
-                const mapLinks = document.getElementById('map-links');
-                const mapNodes = document.getElementById('map-nodes');
                 let linkHtml = '', nodeHtml = '';
-                
                 obs.warehouses.forEach((w, i) => {
-                    const tx = 350 + (i % 2 === 0 ? 0 : 250);
-                    const ty = 80 + i * 80;
-                    const statusColor = w.utilization > 0.8 ? '#f43f5e' : (w.utilization < 0.2 ? '#f59e0b' : '#3b82f6');
-                    
-                    linkHtml += `<path d="M 120 200 C 200 200, 250 ${ty}, ${tx} ${ty}" class="node-link" stroke="rgba(59, 130, 246, 0.4)" stroke-width="1.5" fill="none" />`;
-                    
-                    nodeHtml += `
-                        <g transform="translate(${tx}, ${ty})" filter="url(#glow)">
-                            <circle r="12" fill="rgba(255,255,255,0.05)" stroke="${statusColor}" stroke-width="1" stroke-dasharray="2 2"></circle>
-                            <circle r="5" fill="${statusColor}"></circle>
-                            <text x="20" y="4" fill="white" font-size="9" font-family="Space Grotesk" font-weight="bold">${w.name}</text>
-                        </g>
-                    `;
+                    const tx = 350 + (i % 2 === 0 ? 0 : 250); const ty = 80 + i * 80;
+                    linkHtml += `<path d="M 120 200 C 200 200, 250 ${ty}, ${tx} ${ty}" stroke="rgba(59, 130, 246, 0.4)" stroke-width="1.5" fill="none" />`;
+                    nodeHtml += `<g transform="translate(${tx}, ${ty})"><circle r="5" fill="${w.utilization > 0.8 ? '#f43f5e' : '#3b82f6'}" /><text x="15" y="4" fill="white" font-size="9" font-family="Space Grotesk">${w.name}</text></g>`;
                 });
-                mapLinks.innerHTML = linkHtml;
-                mapNodes.innerHTML = nodeHtml;
+                document.getElementById('map-links').innerHTML = linkHtml;
+                document.getElementById('map-nodes').innerHTML = nodeHtml;
 
-                // Sync Charts
                 history.step.push(obs.current_step);
                 history.demand.push(obs.forecasted_demand.reduce((acc, f) => acc + f.next_5_steps[0], 0));
-                history.cost.push(obs.total_cost);
-                history.sl.push(obs.service_level);
+                history.cost.push(obs.total_cost); history.sl.push(obs.service_level);
 
-                const chartLayout = {
-                    margin: { t: 5, b: 30, l: 40, r: 10 },
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(0,0,0,0)',
-                    font: { color: '#475569', size: 9, family: 'Space Grotesk' },
-                    xaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false },
-                    yaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false }
-                };
-                Plotly.react('demand-chart', [{ x: history.step, y: history.demand, type: 'scatter', line: { color: '#3b82f6', width: 2, shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.05)' }], chartLayout);
-                Plotly.react('inventory-chart', [{ x: obs.warehouses.map(w => w.name), y: obs.warehouses.map(w => w.inventory), type: 'bar', marker: { color: 'rgba(59, 130, 246, 0.6)' } }], chartLayout);
-                
-                lucide.createIcons();
+                const layout = { margin: { t: 5, b: 30, l: 40, r: 10 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { color: '#475569', size: 9, family: 'Space Grotesk' }, xaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false }, yaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false } };
+                Plotly.react('demand-chart', [{ x: history.step, y: history.demand, type: 'scatter', line: { color: '#3b82f6', width: 2, shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.05)' }], layout);
+                Plotly.react('inventory-chart', [{ x: obs.warehouses.map(w => w.name), y: obs.warehouses.map(w => w.inventory), type: 'bar', marker: { color: 'rgba(59, 130, 246, 0.6)' } }], layout);
             }
 
-            function animateCounter(id, target, prefix = '', suffix = '') {
+            function animateCounter(id, target, prefix = '') {
                 const el = document.getElementById(id);
                 const current = parseFloat(el.innerText.replace(/[^\d.-]/g, '')) || 0;
-                gsap.to({ val: current }, {
-                    val: target, duration: 1.5, ease: "power2.out",
-                    onUpdate: function() { el.innerText = prefix + (id.includes('sl') ? this.targets()[0].val.toFixed(1) : this.targets()[0].val.toFixed(2)) + suffix; }
-                });
+                gsap.to({ val: current }, { val: target, duration: 1.5, onUpdate: function() { el.innerText = prefix + (id.includes('reward') || id.includes('cost') ? this.targets()[0].val.toFixed(0) : (id.includes('sl') ? this.targets()[0].val.toFixed(1) : this.targets()[0].val.toFixed(2))); } });
             }
-
             window.onload = resetEnv;
+            lucide.createIcons();
         </script>
     </body>
     </html>
