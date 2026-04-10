@@ -229,22 +229,22 @@ async def dashboard():
                             <button onclick="runStep('expedited')" class="py-4 bg-gradient-to-br from-blue-600 to-indigo-700 hover:scale-[1.02] active:scale-[0.98] rounded-2xl font-bold transition-all shadow-xl shadow-blue-500/20 text-white">Rush Execute</button>
                         </div>
                         <button onclick="getAISuggestion()" class="w-full py-4 bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 group rounded-2xl font-bold transition-all text-blue-400 flex items-center justify-center gap-3">
-                            <i data-lucide="sparkles" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i> Get AI Intelligence Hub
+                            <i data-lucide="brain-circuit" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i> Query OpenEnv Model
                         </button>
                     </div>
                 </div>
                 <div id="market-news-container" class="glass-panel rounded-3xl p-6 border-blue-500/30 shadow-blue-500/5 hidden">
                     <div class="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
                         <div class="flex items-center gap-3">
-                            <i data-lucide="rss" class="text-blue-400 w-4 h-4"></i>
-                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Market Intel Feed</h4>
+                            <i data-lucide="cpu" class="text-blue-400 w-4 h-4"></i>
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Neural Intelligence Hub</h4>
                         </div>
-                        <span class="text-[9px] text-blue-500 font-bold animate-pulse">LIVE DATA</span>
+                        <span class="text-[9px] text-blue-500 font-bold">QWEN-72B-GENAI</span>
                     </div>
                     <div id="market-news" class="space-y-4"></div>
                 </div>
                 <div class="glass-panel rounded-3xl p-8 flex-grow flex flex-col min-h-[400px] border-white/5 overflow-hidden">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Tactical Stream</h3>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Neural Inference Stream</h3>
                     <div id="terminal" class="flex-grow overflow-y-auto custom-scrollbar space-y-4 pr-2"></div>
                     <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center"><div class="flex items-center gap-3"><div class="w-32 h-1 bg-slate-800 rounded-full overflow-hidden"><div id="step-progress" class="h-full bg-blue-500 transition-all duration-700"></div></div><span class="text-xs font-mono font-bold text-slate-400" id="step-counter">00 / 100</span></div></div>
                 </div>
@@ -273,10 +273,10 @@ async def dashboard():
                 log('Querying HF Intelligence Hub...', 'info');
                 const res = await fetch('/suggest', { method: 'POST' });
                 const data = await res.json();
-                if (data.error) log('AI Hub Offline: ' + data.error, 'warn');
+                if (data.error) log('Neural Hub Offline: ' + data.error, 'warn');
                 else {
-                    log('AI STRATEGY: ' + data.reasoning, 'success');
-                    log('SUGGESTED COMMAND: ' + data.command, 'info');
+                    log('LLM STRATEGIC REASONING: ' + data.reasoning, 'success');
+                    log('INFERRED COMMAND: ' + data.command, 'info');
                     // Autofill the form
                     const parts = data.command.split(' ');
                     if (parts[0] === 'order') {
