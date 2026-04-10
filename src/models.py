@@ -103,7 +103,7 @@ def initialize_warehouses(num_warehouses: int) -> List[Warehouse]:
         warehouse = Warehouse(
             id=i,
             name=f"Warehouse-{chr(65+i)}",
-            inventory=random.uniform(1000, 1800),
+            inventory=random.uniform(600, 1000),
             capacity=4000,
             holding_cost_per_unit=h_cost,
             location=locations[i % len(locations)]
