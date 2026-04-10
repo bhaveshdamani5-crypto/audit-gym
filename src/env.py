@@ -151,23 +151,24 @@ class InventoryGymEnv:
             self.total_fulfilled += fulfilled
             
             s_level = fulfilled / demand if demand > 0 else 1.0
-            reward += s_level * 1.5 
+            # Normalized reward per warehouse (max 1.0 / num_warehouses)
+            reward += (s_level * 0.4) / self.num_warehouses 
             
-            # Stockout Penalty
+            # Stockout Penalty (Normalized)
             if fulfilled < demand:
-                loss = (demand - fulfilled)
-                reward -= (loss / 100.0) * 0.3
+                loss = (demand - fulfilled) / max(demand, 1)
+                reward -= (loss * 0.1) / self.num_warehouses
             
-            # Holding Costs
+            # Holding Costs (Normalized)
             h_cost = warehouse.inventory * warehouse.holding_cost_per_unit * self.inventory_penalty_factor
             self.total_cost += h_cost
-            reward -= h_cost * 0.001
+            reward -= (h_cost * 0.0001) / self.num_warehouses
             
-            # Safety Stock Optimization Penalty
+            # Safety Stock Optimization (Normalized)
             rolling_avg = np.mean(self.history_demand[i][-10:]) if len(self.history_demand[i]) > 10 else demand
             target_stock = rolling_avg * self.lead_time * 1.8
             stock_error = abs(warehouse.inventory - target_stock) / warehouse.capacity
-            reward -= (stock_error ** 2) * 0.05
+            reward -= (stock_error ** 2) * 0.02 / self.num_warehouses
 
         # --- 4. Termination & Terminal Rewards ---
         done = self.current_step >= self.num_steps
