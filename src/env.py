@@ -137,7 +137,10 @@ class InventoryGymEnv:
 
         # --- 3. Demand Fulfillment & Local Dynamics ---
         for i, warehouse in enumerate(self.warehouses):
-            demand = self.demand_patterns[i][self.current_step]
+            # Use current_step - 1 because it was incremented at the start of the function
+            # This ensures we use demand_patterns[i][0] in the first step (when current_step=1)
+            demand_idx = self.current_step - 1
+            demand = self.demand_patterns[i][demand_idx]
             
             # Demand shock multiplier
             if self.shock_type == "demand" and self.shock_steps_left > 0:
@@ -228,7 +231,7 @@ class InventoryGymEnv:
             })
             forecast_data.append({
                 "warehouse_id": i,
-                "next_5_steps": [round(d, 1) for d in self.demand_patterns[i][self.current_step+1 : self.current_step+6]]
+                "next_5_steps": [round(d, 1) for d in self.demand_patterns[i][self.current_step : self.current_step+5]]
             })
 
         pending_data = [

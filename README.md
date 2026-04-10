@@ -1,5 +1,5 @@
 ---
-title: InventoryGym Elite
+title: InventoryGym: Supply Chain Intelligence
 emoji: 📦
 colorFrom: blue
 colorTo: indigo
@@ -8,71 +8,93 @@ app_file: app.py
 pinned: false
 ---
 
-# 🛡️ InventoryGym Alpha Elite (Meta OpenEnv Finals)
+# 📦 InventoryGym: Supply Chain Resilience Environment (Round 1)
 
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-Compatible-blueviolet)](https://github.com/facebookresearch/openenv)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Powered by PyTorch](https://img.shields.io/badge/Powered%20by-PyTorch-EE4C2C)](https://pytorch.org/)
 
-**InventoryGym Alpha Elite** is a high-fidelity Reinforcement Learning environment designed for the **Meta OpenEnv Hackathon (Bengaluru Finals)**. Unlike standard inventory simulations, Alpha Elite explicitly models **Systemic Resilience** and **Network Fragmentation**.
+**InventoryGym** is a high-fidelity Reinforcement Learning environment built for the **Meta PyTorch OpenEnv Hackathon 2026**. It challenges agents to manage complex, multi-node supply chains under stochastic demand, logistics friction, and systemic shocks.
 
-It serves as a professional-grade benchmark for testing how well Large Language Models (LLMs) and PPO Agents can manage complex, real-world supply chain crises.
+> [!NOTE]
+> This is the **Round 1 Submission** for Team StrategyAlpha. We have prioritized a robust mathematical baseline and a high-fidelity observation space to prove the feasibility of RL-driven supply chain optimization.
 
 ---
 
-## 🏛️ System Architecture: The Strategic Nexus
+## 📖 The Problem
+Modern supply chains are brittle. Traditional "Fixed-Threshold" inventory systems fail when faced with **Systemic Shocks** (e.g., sudden logistical bottlenecks or demand spikes). **InventoryGym** provides a playground for testing agents that can reason about:
+1. **Network Optimization**: Moving stock between warehouses (transshipment) vs. ordering from a central supplier.
+2. **Resilience**: Maintaining service levels (SL) even when lead times are delayed.
+3. **Cost Efficiency**: Balancing the "Holding Cost vs. Stockout Cost" trade-off.
 
-Alpha Elite simulates a multi-node supply chain ecosystem where local nodes are connected via a high-speed transshipment network.
+---
 
-### 🌐 Network Topology
+## 🛠️ Architecture & Tech Stack
+
 ```mermaid
-graph LR
-    S[Global Supplier] --> W1[Warehouse North]
-    S --> W2[Warehouse South]
-    S --> W3[Warehouse Central]
-    W1 <--> W2
-    W2 <--> W3
-    W1 <--> W3
-    classDef warehouse fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff;
-    class W1,W2,W3 warehouse;
+graph TD
+    A[Agent / LLM] -->|Action: Order/Transfer| B(InventoryGym Environment)
+    B -->|Stochastic Process| C{Logic Engine}
+    C -->|Demand Fulfillment| D[Warehouse Network]
+    C -->|Reward Calculation| E[Feedback Loop]
+    D -->|State| F[Observation Space]
+    F -->|JSON| A
+    B -.->|Telemetry| G[Glassmorphism Dashboard]
+```
+
+- **Core**: Python + Pydantic (OpenEnv Compliant)
+- **UI**: Streamlit-style FastAPI Dashboard with GSAP Animations & Plotly Telemetry.
+- **Grader**: Automated Compliance Engine (Scoring 0.01 - 0.99).
+- **Deployment**: Docker-based Hugging Face Space.
+
+---
+
+## 🎯 Task Specifications (Round 1)
+
+| Task ID | Name | Objective | Nodes | Complexity |
+| :--- | :--- | :--- | :--- | :--- |
+| **inventory-easy** | Linear Stable | Maintain 1 node with predictable demand. | 1 | 🟢 Low |
+| **inventory-medium** | Multi-Node Balance | Manage 3 nodes with transshipment allowed. | 3 | 🟡 Medium |
+| **inventory-hard** | Shock Resilience | Manage 5 nodes during active Logistic Shocks. | 5 | 🔴 High |
+
+---
+
+## 📊 Action & Observation Space
+
+### Observation Space (`InventoryObservation`)
+The environment returns a full system snapshot every step:
+- `warehouses`: List of IDs, Current Stock, and % Utilization.
+- `forecasted_demand`: 5-step rolling window forecast for every node.
+- `pending_orders`: ETA and volume of shipments in transit.
+- `compliance_score`: Live estimate of your current hackathon grade (0.01-0.99).
+
+### Action Space (`Action`)
+Agents control the system via a single discrete/continuous action type:
+```json
+{
+  "dest_warehouse": 2,
+  "quantity": 500,
+  "origin_warehouse": -1,  // -1 for Supplier, ID for Transshipment
+  "priority": "expedited"  // Faster transit, higher cost
+}
 ```
 
 ---
 
-## 🚀 "Finals-Grade" Innovation Features
+## 🚀 Execution Guide
 
-| Feature | Description | Strategic Challenge |
-| :--- | :--- | :--- |
-| **Transshipment** | Horizontal movement of stock between nodes. | Requires Network Optimization logic. |
-| **Systemic Shocks** | Demand spikes (300%+) or Supply chain bottlenecks. | Tests "Black Swan" resilience. |
-| **Stochastic Lead times** | Deliveries have probabilistic delays (±2 cycles). | Forces advanced Safety Stock calculations. |
-| **Tiered Pricing** | Economies of scale on ordering (Unit price drops at 500+). | Rewards bulk planning over panic-buying. |
-
----
-
-## 📊 Performance & Compliance
-
-Alpha Elite is fully synchronized with the **Meta OpenEnv v1 Protocol**:
-- **Clamped Scoring**: Guaranteed `0.01` to `0.99` range for official validation.
-- **AEGIS Intelligence**: Built-in heuristic fallback for zero-fail performance.
-- **Glassmorphism UI**: High-fidelity dashboard for real-time telemetry observation.
-
----
-
-## 🛠️ Quick Start
-
-### 1. Environment Installation
+### 1. Local Development
 ```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 2. Launch Strategy Dashboard
-```bash
+# Launch the Interactive Dashboard
 python app.py
 ```
-*Access the dashboard at `http://localhost:7860`*
+View the dashboard at `http://localhost:7860`.
 
-### 3. Execute Autonomous Agent
+### 2. Running the Baseline Agent
+Our baseline uses **AEGIS Heuristic Fallback** logic to prove the environment's solvability.
 ```bash
 export HF_TOKEN="your_token"
 python inference.py
@@ -80,12 +102,12 @@ python inference.py
 
 ---
 
-## 🧠 The Narrative: Why Alpha Elite?
-
-In the current global climate, linear supply chains are dead. Modern logistics requires **Systemic Intelligence**. Alpha Elite was built to prove that RL Agents can outperform "Fixed-Threshold" humans by leveraging **Horizontal Transshipment** and **Predictive Stockpiling**.
-
-This project represents the bridge between traditional OR (Operations Research) and modern Generative AI Logistics.
+## 📈 Compliance Checklist (Hackathon Requirements)
+- [x] **OpenEnv v1 Support**: Implements `reset()`, `step()`, and Pydantic validation.
+- [x] **Score Clamping**: Graders strictly output values between **0.01 and 0.99**.
+- [x] **Docker Deployment**: Fully containerized for Hugging Face Spaces.
+- [x] **Evaluation**: Standardized `inference.py` script provided with model-independent logging.
 
 ---
 **Developed for the Meta PyTorch OpenEnv Hackathon 2026.**
-**Strategic Lead: SST Finalist Team.**
+**Strategic Lead: Round 1 Participant.**

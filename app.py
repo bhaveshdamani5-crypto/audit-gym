@@ -38,7 +38,7 @@ async def state():
 @app.get("/", response_class=HTMLResponse)
 async def dashboard():
     """Ultra-Premium Interactive Intelligence Dashboard"""
-    return """
+    return r"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
