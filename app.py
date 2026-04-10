@@ -103,31 +103,51 @@ async def dashboard():
         
         <style>
             :root {
-                --primary: #3b82f6; --primary-glow: rgba(59, 130, 246, 0.4);
-                --accent: #f43f5e; --success: #10b981;
-                --bg: #020617; --card-bg: rgba(15, 23, 42, 0.75); --border: rgba(255, 255, 255, 0.08);
+                --primary: #3b82f6; --primary-light: #60a5fa; --primary-glow: rgba(59, 130, 246, 0.4);
+                --accent: #f43f5e; --success: #10b981; --warning: #f59e0b;
+                --bg: #020617; --card-bg: rgba(7, 13, 31, 0.7); --border: rgba(255, 255, 255, 0.05);
             }
             body { 
                 font-family: 'Outfit', sans-serif; background: var(--bg); color: #f1f5f9; overflow-x: hidden;
-                background-image: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=2000&q=80');
-                background-size: cover; background-attachment: fixed; background-position: center;
+                background: radial-gradient(circle at 50% 50%, #0c122b 0%, #020617 100%);
             }
-            h1, h2, h3, .font-heading { font-family: 'Space Grotesk', sans-serif; }
-            .glass-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8); }
-            .cyber-border { position: relative; overflow: hidden; }
-            .cyber-border::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--primary), transparent); animation: scan 3s linear infinite; }
-            @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-            .stat-card:hover { transform: translateY(-4px) scale(1.02); border-color: var(--primary-glow); background: rgba(15, 23, 42, 0.9); }
-            .pulse-online { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); animation: pulse 2s infinite; }
-            @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+            body::before {
+                content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+                z-index: 100; pointer-events: none; background-size: 100% 2px, 3px 100%;
+            }
+            h1, h2, h3, .font-heading { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.02em; }
+            .glass-panel { 
+                background: var(--card-bg); backdrop-filter: blur(24px); border: 1px solid var(--border); 
+                box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            }
+            .glass-panel:hover { border-color: rgba(59, 130, 246, 0.2); box-shadow: 0 0 40px -10px rgba(59, 130, 246, 0.15); }
+            .cyber-btn {
+                position: relative; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; overflow: hidden;
+            }
+            .cyber-btn:hover { background: #1e293b; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 20px -10px var(--primary-glow); }
+            .cyber-btn::after {
+                content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+                background: linear-gradient(transparent, rgba(255,255,255,0.05), transparent); transform: rotate(45deg);
+                transition: 0.5s; pointer-events: none;
+            }
+            .cyber-btn:hover::after { left: 100%; }
+            .pulse-online { width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 15px var(--success); animation: pulse 2s infinite; }
+            @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.4; } 100% { transform: scale(1); opacity: 1; } }
             .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-            .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-            .node-link { stroke-dasharray: 10; animation: flow 20s linear infinite; transition: stroke 0.5s ease; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+            .node-link { stroke-dasharray: 10; animation: flow 15s linear infinite; opacity: 0.3; }
             @keyframes flow { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
-            .btn-hover:hover { box-shadow: 0 0 20px var(--primary-glow); }
-            #shock-banner { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: none; background: rgba(244, 63, 94, 0.9); color: white; text-align: center; padding: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; animation: blink 1s infinite; }
-            @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+            #shock-banner { 
+                position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: none; 
+                background: linear-gradient(90deg, #f43f5e, #be123c, #f43f5e); background-size: 200% auto;
+                color: white; text-align: center; padding: 12px; font-weight: 800; letter-spacing: 4px; 
+                text-transform: uppercase; animation: banner-slide 2s linear infinite; box-shadow: 0 4px 30px rgba(244, 63, 94, 0.4);
+            }
+            @keyframes banner-slide { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
+            .gradient-text { background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+            .ai-news-item { border-left: 2px solid var(--primary); background: linear-gradient(90deg, rgba(59, 130, 246, 0.05), transparent); }
         </style>
     </head>
     <body class="min-h-screen flex flex-col">
@@ -205,20 +225,23 @@ async def dashboard():
                         </div>
                         <div class="space-y-4"><label class="text-[10px] font-bold text-slate-500 uppercase flex justify-between">Volume Allocation <span id="qty-disp" class="text-blue-400 font-bold text-lg">500</span></label><input type="range" id="action-qty" min="0" max="2500" step="50" value="500" class="w-full accent-blue-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none" oninput="document.getElementById('qty-disp').innerText = this.value"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <button onclick="runStep('normal')" class="btn-hover py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-all border border-white/5 text-slate-300">Standard Plan</button>
-                            <button onclick="runStep('expedited')" class="btn-hover py-4 bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 rounded-2xl font-bold transition-all shadow-xl text-white">Rush Execute</button>
+                            <button onclick="runStep('normal')" class="cyber-btn py-4 rounded-2xl font-bold text-slate-400">Standard Plan</button>
+                            <button onclick="runStep('expedited')" class="py-4 bg-gradient-to-br from-blue-600 to-indigo-700 hover:scale-[1.02] active:scale-[0.98] rounded-2xl font-bold transition-all shadow-xl shadow-blue-500/20 text-white">Rush Execute</button>
                         </div>
-                        <button onclick="getAISuggestion()" class="w-full py-4 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-2xl font-bold transition-all text-blue-400 flex items-center justify-center gap-3">
-                            <i data-lucide="sparkles" class="w-4 h-4"></i> Get AI Intelligence
+                        <button onclick="getAISuggestion()" class="w-full py-4 bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 group rounded-2xl font-bold transition-all text-blue-400 flex items-center justify-center gap-3">
+                            <i data-lucide="sparkles" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i> Get AI Intelligence Hub
                         </button>
                     </div>
                 </div>
-                <div id="market-news-container" class="glass-panel rounded-3xl p-6 border-blue-500/20 shadow-blue-500/5 hidden">
-                    <div class="flex items-center gap-3 mb-3 pb-2 border-b border-white/5">
-                        <i data-lucide="rss" class="text-blue-400 w-4 h-4"></i>
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Market Intelligence Feed</h4>
+                <div id="market-news-container" class="glass-panel rounded-3xl p-6 border-blue-500/30 shadow-blue-500/5 hidden">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="rss" class="text-blue-400 w-4 h-4"></i>
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Market Intel Feed</h4>
+                        </div>
+                        <span class="text-[9px] text-blue-500 font-bold animate-pulse">LIVE DATA</span>
                     </div>
-                    <div id="market-news" class="space-y-3"></div>
+                    <div id="market-news" class="space-y-4"></div>
                 </div>
                 <div class="glass-panel rounded-3xl p-8 flex-grow flex flex-col min-h-[400px] border-white/5 overflow-hidden">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Tactical Stream</h3>
