@@ -322,4 +322,17 @@ class InventoryGymEnv:
             last_action=action_desc
         )
 
+    async def state(self) -> Dict[str, Any]:
+        """Returns the internal metrics required by the OpenEnv grader logic."""
+        global_sl = 1.0
+        if self.total_demand > 0:
+            global_sl = self.total_fulfilled / self.total_demand
+            
+        return {
+            "service_level": float(global_sl),
+            "total_cost": float(self.total_cost),
+            "current_step": self.current_step,
+            "compliance_score": self._calculate_compliance_score()
+        }
+
     async def close(self): pass

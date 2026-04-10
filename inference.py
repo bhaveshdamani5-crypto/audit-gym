@@ -4,18 +4,24 @@ import json
 from typing import List
 from openai import OpenAI
 from dotenv import load_dotenv
+import argparse
 
 # Load local .env file if it exists
 load_dotenv()
 from src.env import InventoryGymEnv
 from src.models import Action
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--task", type=str, default="inventory-medium")
+parser.add_argument("--model", type=str, default="Qwen/Qwen2.5-72B-Instruct")
+args = parser.parse_args()
+
 # Configuration from Environment Variables
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+MODEL_NAME = args.model
 API_KEY = os.getenv("HF_TOKEN")
 
-TASK_NAME = os.getenv("TASK_NAME", "inventory-medium")
+TASK_NAME = args.task
 BENCHMARK = "InventoryGym-v1"
 
 # Task Mapping
