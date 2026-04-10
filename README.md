@@ -3,8 +3,8 @@ title: AuditGym-v1
 emoji: 🔍
 colorFrom: indigo
 colorTo: purple
-sdk: docker
-app_port: 8000
+sdk: streamlit
+python_version: 3.11
 pinned: true
 
 ---
@@ -17,7 +17,7 @@ A real-world OpenEnv environment simulating forensic audit of transaction datase
 
 ```
 your-repo/
-├── app.py                 # Hugging Face Space entrypoint
+├── app.py                 # Hugging Face Space entrypoint (Streamlit)
 ├── requirements.txt       # Dependencies
 ├── README.md             # This file
 ├── demo.py               # Sample episode demo
