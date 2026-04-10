@@ -1,10 +1,11 @@
-name: AuditGym
+name: InventoryGym
 version: v1
-description: A forensic audit environment for detecting synthetic fraud in transaction datasets
+description: A supply chain inventory management environment for learning cost-efficient warehouse operations
 models:
   - src.models.Action
-  - src.models.Observation
+  - src.models.InventoryObservation
   - src.models.ResetResponse
   - src.models.StepResponse
-  - src.models.Transaction
-environment: src.env:AuditGymEnv
+  - src.models.Warehouse
+  - src.models.Order
+environment: src.env:InventoryGymEnv
