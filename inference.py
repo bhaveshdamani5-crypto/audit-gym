@@ -61,11 +61,18 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float], task:
     print(f"[END] task={task} success={success_str} steps={steps} score={clamped_score:.2f} rewards={rewards_str}", flush=True)
 
 def get_heuristic_action(obs) -> str:
-    """Heuristic fallback to keep node alive if LLM fails or makes bad moves."""
-    for warehouse in obs.warehouses:
-        if warehouse['inventory'] < (warehouse['capacity'] * 0.15):
-            # Panic order to prevent stockout
-            return f"order {warehouse['id']} 800 expedited"
+    """Proactive tactical fallback: ensures stock covers 5-step demand window."""
+    for i, warehouse in enumerate(obs.warehouses):
+        # Calculate expected demand for the next 5 cycles from the forecast
+        forecast = obs.forecasted_demand[i]['next_5_steps']
+        future_demand = sum(forecast)
+        
+        # Safety Threshold: cover future demand + 20% buffer
+        safety_level = future_demand * 1.2
+        
+        if warehouse['inventory'] < safety_level:
+            # Order 30% of capacity to rebuild buffer
+            return f"order {warehouse['id']} {warehouse['capacity'] * 0.3} expedited"
     return "order 0 0"
 
 async def main():

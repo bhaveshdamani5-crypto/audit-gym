@@ -182,9 +182,9 @@ async def dashboard():
                 if (data.done) log('Simulation Objective Achieved.', 'success');
                 else {
                     const r = data.reward;
-                    if (r > 1.5) log(`Excellent Execute: +${r.toFixed(1)}`, 'success');
-                    else if (r > 0) log(`Steady Performance: +${r.toFixed(1)}`, 'info');
-                    else log(`High Friction: ${r.toFixed(1)}`, 'warn');
+                    if (r > 0.3) log(`Optimal Strategic Execute: +${r.toFixed(2)}`, 'success');
+                    else if (r >= 0) log(`Steady Performance: +${r.toFixed(2)}`, 'info');
+                    else log(`Operational Friction: ${r.toFixed(2)}`, 'warn');
                 }
                 updateUI(data.observation, data.reward);
             }

@@ -164,11 +164,15 @@ class InventoryGymEnv:
             self.total_cost += h_cost
             reward -= (h_cost * 0.0001) / self.num_warehouses
             
+            # Resilience Bonus: Reward keeping stock levels healthy (15%-80% capacity)
+            if 0.15 < (warehouse.inventory / warehouse.capacity) < 0.8:
+                reward += 0.05 / self.num_warehouses
+            
             # Safety Stock Optimization (Normalized)
             rolling_avg = np.mean(self.history_demand[i][-10:]) if len(self.history_demand[i]) > 10 else demand
             target_stock = rolling_avg * self.lead_time * 1.8
             stock_error = abs(warehouse.inventory - target_stock) / warehouse.capacity
-            reward -= (stock_error ** 2) * 0.02 / self.num_warehouses
+            reward -= (stock_error ** 2) * 0.01 / self.num_warehouses
 
         # --- 4. Termination & Terminal Rewards ---
         done = self.current_step >= self.num_steps
