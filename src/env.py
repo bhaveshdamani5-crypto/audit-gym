@@ -1,103 +1,188 @@
 import asyncio
-import re
 from typing import List, Dict, Any
-from .models import Transaction, Action, Observation, ResetResponse, StepResponse, generate_transactions
+from .models import (
+    Warehouse, Order, Action, InventoryObservation, 
+    ResetResponse, StepResponse, generate_demand_patterns, initialize_warehouses
+)
 
-class AuditGymEnv:
-    def __init__(self, num_total=1000, num_fraud=5, num_red_herring=50, max_steps=1000):
-        self.num_total = num_total
-        self.num_fraud = num_fraud
-        self.num_red_herring = num_red_herring
-        self.max_steps = max_steps
+
+class InventoryGymEnv:
+    """
+    Multi-warehouse inventory management environment.
+    Agent decides when and how much to order for each warehouse.
+    Strategic tension between holding costs and stockout penalties.
+    """
+    
+    def __init__(self, num_warehouses=1, num_steps=100, lead_time=3, inventory_penalty_factor=1.0):
+        self.num_warehouses = num_warehouses
+        self.num_steps = num_steps
+        self.lead_time = lead_time  # Steps for order to arrive
+        self.inventory_penalty_factor = inventory_penalty_factor  # Difficulty: higher = more expensive
+        
+        self.current_step = 0
+        self.warehouses: List[Warehouse] = []
+        self.demand_patterns: Dict[int, List[float]] = {}
+        self.pending_orders: List[Order] = []
+        self.order_id_counter = 0
+        self.total_cost = 0.0
+        self.last_action = None
+        self.total_demand_met = 0.0
+        self.total_demand = 0.0
 
     async def reset(self) -> ResetResponse:
-        self.transactions = generate_transactions(self.num_total, self.num_fraud, self.num_red_herring)
-        self.current_view = self.transactions[:]
-        self.step_count = 0
-        self.flagged_frauds = set()
-        self.flagged_red_herrings = set()
-        self.flagged_clears = set()
-        self.last_message = ""
+        """Initialize environment for new episode."""
+        self.current_step = 0
+        self.order_id_counter = 0
+        self.total_cost = 0.0
+        self.last_action = None
+        self.total_demand_met = 0.0
+        self.total_demand = 0.0
+        self.pending_orders = []
+        
+        # Initialize warehouses
+        self.warehouses = initialize_warehouses(self.num_warehouses)
+        
+        # Generate demand patterns
+        self.demand_patterns = generate_demand_patterns(self.num_warehouses, self.num_steps)
+        
         obs = self._get_obs()
         return ResetResponse(observation=obs)
 
     async def step(self, action: Action) -> StepResponse:
-        self.step_count += 1
-        reward = -0.02  # step penalty
-
-        message = action.message.lower().strip()
-        self.last_message = action.message
-        done = False
-
-        if "query" in message:
-            # Parse query, e.g., "query amount > 5000"
-            match = re.search(r'query\s+(\w+)\s*([<>=]+)\s*(\d+(?:\.\d+)?)', message)
-            if match:
-                field, op, value = match.groups()
-                value = float(value)
-                if field == "amount":
-                    if op == ">":
-                        self.current_view = [t for t in self.current_view if t.amount > value]
-                    elif op == "<":
-                        self.current_view = [t for t in self.current_view if t.amount < value]
-                    reward += 0.10
-        elif "verify" in message:
-            # Parse verify, e.g., "verify id 0"
-            match = re.search(r'verify\s+id\s+(\d+)', message)
-            if match:
-                id_val = int(match.group(1))
-                if 0 <= id_val < len(self.transactions) and any(t.id == id_val for t in self.current_view):
-                    t = next(t for t in self.current_view if t.id == id_val)
-                    t.verified = True
-                    if t.is_fraud:
-                        t.extra_info = "Cross-reference: Anomalous activity detected"
-                    elif t.is_red_herring:
-                        t.extra_info = "Cross-reference: Large but legitimate transaction"
-                    else:
-                        t.extra_info = "Cross-reference: Standard transaction"
-        elif "flag" in message:
-            # Parse flag, e.g., "flag id 0"
-            match = re.search(r'flag\s+id\s+(\d+)', message)
-            if match:
-                id_val = int(match.group(1))
-                if 0 <= id_val < len(self.transactions) and any(t.id == id_val for t in self.current_view):
-                    t = next(t for t in self.current_view if t.id == id_val)
-                    self.current_view = [tx for tx in self.current_view if tx.id != id_val]
-                    if t.is_fraud:
-                        reward += 0.95
-                        self.flagged_frauds.add(id_val)
-                    elif t.is_red_herring:
-                        reward += 0.05
-                        self.flagged_red_herrings.add(id_val)
-                    else:
-                        reward += 0.70
-                        self.flagged_clears.add(id_val)
-
-        if len(self.flagged_frauds) == self.num_fraud:
-            done = True
-
-        if self.step_count >= self.max_steps:
-            done = True
-
+        """
+        Process one step of inventory management.
+        Agent orders stock, demand is fulfilled, costs are calculated.
+        """
+        self.current_step += 1
+        reward = 0.0
+        self.last_action = None
+        
+        # Process agent's order
+        if action.quantity > 0 and action.dest_warehouse < len(self.warehouses):
+            order_cost = action.quantity * (1.2 if action.priority == "expedited" else 1.0)
+            self.total_cost += order_cost
+            reward -= order_cost * 0.01  # Cost penalty
+            
+            order = Order(
+                id=self.order_id_counter,
+                origin_warehouse=-1,  # Supplier
+                dest_warehouse=action.dest_warehouse,
+                quantity=action.quantity,
+                steps_remaining=self.lead_time if action.priority == "normal" else 1,
+                cost=order_cost
+            )
+            self.pending_orders.append(order)
+            self.order_id_counter += 1
+            self.last_action = f"Order {action.quantity:.0f} units to Warehouse-{chr(65+action.dest_warehouse)}"
+        
+        # Advance pending orders
+        arrived_orders = []
+        for order in self.pending_orders[:]:
+            order.steps_remaining -= 1
+            if order.steps_remaining <= 0:
+                # Order arrives
+                self.warehouses[order.dest_warehouse].inventory += order.quantity
+                arrived_orders.append(order)
+                self.pending_orders.remove(order)
+        
+        # Process demand for each warehouse
+        for warehouse_id, warehouse in enumerate(self.warehouses):
+            demand = self.demand_patterns[warehouse_id][self.current_step]
+            self.total_demand += demand
+            
+            # Fulfill demand if possible
+            fulfilled = min(warehouse.inventory, demand)
+            self.total_demand_met += fulfilled
+            warehouse.inventory -= fulfilled
+            
+            # Reward for meeting demand
+            fulfillment_rate = fulfilled / demand if demand > 0 else 1.0
+            reward += fulfillment_rate * 0.5
+            
+            # Penalty for unmet demand (stockout)
+            stockout = max(0, demand - fulfilled)
+            reward -= stockout * 0.3
+            
+            # Holding cost (penalize excess inventory)
+            holding_cost = warehouse.inventory * warehouse.holding_cost_per_unit * self.inventory_penalty_factor
+            self.total_cost += holding_cost
+            reward -= holding_cost * 0.01
+            
+            # Bonus for good inventory management (not too high, not too low)
+            optimal_level = demand * self.lead_time * 1.5
+            excess = max(0, warehouse.inventory - optimal_level)
+            if excess > 0:
+                reward -= excess * 0.001  # Small penalty for over-stocking
+            
+            # Reward for staying in good range
+            if 0.3 * optimal_level < warehouse.inventory < 0.8 * optimal_level:
+                reward += 0.05
+        
+        done = self.current_step >= self.num_steps
         obs = self._get_obs()
+        
         return StepResponse(observation=obs, reward=reward, done=done)
 
     async def state(self) -> Dict[str, Any]:
+        """Return current state metrics."""
+        total_inventory = sum(w.inventory for w in self.warehouses)
+        fulfillment_rate = self.total_demand_met / self.total_demand if self.total_demand > 0 else 0.0
+        
         return {
-            "flagged_frauds": len(self.flagged_frauds),
-            "flagged_red_herrings": len(self.flagged_red_herrings),
-            "flagged_clears": len(self.flagged_clears),
-            "step_count": self.step_count,
-            "done": len(self.flagged_frauds) == self.num_fraud or self.step_count >= self.max_steps
+            "step": self.current_step,
+            "total_inventory": total_inventory,
+            "total_cost": self.total_cost,
+            "fulfillment_rate": fulfillment_rate,
+            "pending_orders": len(self.pending_orders),
+            "avg_warehouse_inventory": total_inventory / len(self.warehouses) if self.warehouses else 0
         }
 
-    def _get_obs(self) -> Observation:
-        transactions = [t.dict() for t in self.current_view]
-        return Observation(transactions=transactions, step_count=self.step_count, echoed_message=self.last_message)
+    def _get_obs(self) -> InventoryObservation:
+        """Get current observation."""
+        warehouses_data = [
+            {
+                "id": w.id,
+                "name": w.name,
+                "inventory": round(w.inventory, 2),
+                "capacity": w.capacity,
+                "utilization": round(w.inventory / w.capacity, 3),
+                "location": w.location
+            }
+            for w in self.warehouses
+        ]
+        
+        pending_data = [
+            {
+                "id": o.id,
+                "dest_warehouse": o.dest_warehouse,
+                "quantity": round(o.quantity, 2),
+                "steps_remaining": o.steps_remaining
+            }
+            for o in self.pending_orders
+        ]
+        
+        # Forecast next 5 steps of demand
+        forecasted = []
+        for wid in range(self.num_warehouses):
+            future_demand = [
+                round(self.demand_patterns[wid][self.current_step + i], 2)
+                for i in range(1, 6)
+                if self.current_step + i < len(self.demand_patterns[wid])
+            ]
+            forecasted.append({"warehouse_id": wid, "next_5_steps": future_demand})
+        
+        return InventoryObservation(
+            warehouses=warehouses_data,
+            pending_orders=pending_data,
+            forecasted_demand=forecasted,
+            current_step=self.current_step,
+            total_cost=round(self.total_cost, 2),
+            last_action=self.last_action
+        )
 
     @classmethod
     async def from_docker_image(cls, image_name: str):
-        # For simplicity, just instantiate
+        return cls()
         return cls()
 
     async def close(self):

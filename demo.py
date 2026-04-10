@@ -1,54 +1,68 @@
 #!/usr/bin/env python3
 """
-Demo script for AuditGym-v1 OpenEnv environment.
-Runs one sample episode with predefined actions to demonstrate the environment.
+Demo script for InventoryGym-v1 OpenEnv environment
+Runs one sample episode demonstrating inventory management decisions
 """
 
 import asyncio
-from src.env import AuditGymEnv
+from src.env import InventoryGymEnv
 from src.models import Action
 
 async def main():
-    print("AuditGym-v1 Demo")
-    print("=" * 50)
+    print("InventoryGym-v1 Demo: Supply Chain Management")
+    print("=" * 60)
 
-    # Create environment for hard task
-    env = AuditGymEnv(num_total=1000, num_fraud=5, num_red_herring=50, max_steps=10)  # Short for demo
+    # Create environment for hard task: 5 warehouses, complex demand
+    env = InventoryGymEnv(num_warehouses=5, num_steps=20, lead_time=2, inventory_penalty_factor=2.0)
 
     # Reset
     result = await env.reset()
-    print(f"Initial observation: {len(result.observation.transactions)} transactions")
-    print(f"Step count: {result.observation.step_count}")
+    print(f"\nInitial state:")
+    print(f"  Warehouses: {len(result.observation.warehouses)}")
+    print(f"  Total inventory: {sum(w['inventory'] for w in result.observation.warehouses):.0f} units")
+    print(f"  Total cost: ${result.observation.total_cost:.2f}")
 
-    # Sample actions
-    actions = [
-        "query amount > 5000",
-        "verify id 0",
-        "flag id 0",
-        "query amount < 0",  # Look for negative amounts (fraud)
-        "verify id 1",
-        "flag id 1"
+    # Simulate ordering decisions (agent learns to balance cost and demand)
+    total_reward = 0.0
+    sample_actions = [
+        {"dest_warehouse": 0, "quantity": 300, "priority": "normal"},
+        {"dest_warehouse": 1, "quantity": 250, "priority": "normal"},
+        {"dest_warehouse": 2, "quantity": 400, "priority": "expedited"},  # Rush order
+        {"dest_warehouse": 0, "quantity": 200, "priority": "normal"},
+        {"dest_warehouse": 3, "quantity": 350, "priority": "normal"},
+        {"dest_warehouse": 4, "quantity": 300, "priority": "normal"},
     ]
 
-    total_reward = 0.0
-    for i, action_msg in enumerate(actions, 1):
-        print(f"\nStep {i}: Action = {action_msg}")
-        result = await env.step(Action(message=action_msg))
+    for i, action_dict in enumerate(sample_actions, 1):
+        action = Action(**action_dict)
+        result = await env.step(action)
+        
         reward = result.reward
         total_reward += reward
-        print(f"Reward: {reward:+.2f}, Done: {result.done}")
-        print(f"Remaining transactions: {len(result.observation.transactions)}")
-        state = await env.state()
-        print(f"Flagged frauds: {state['flagged_frauds']}")
-
+        
+        inventory_levels = [f"{w['inventory']:.0f}" for w in result.observation.warehouses]
+        print(f"\n[Step {i}]")
+        print(f"  Action: Order {action.quantity:.0f} units to Warehouse-{chr(65+action.dest_warehouse)} ({action.priority})")
+        print(f"  Reward: {reward:+.2f}")
+        print(f"  Inventory levels: {inventory_levels}")
+        print(f"  Pending orders: {len(result.observation.pending_orders)}")
+        print(f"  Cost: ${result.observation.total_cost:.2f}")
+        
         if result.done:
             break
 
-    print(f"\nEpisode finished. Total reward: {total_reward:.2f}")
+    print(f"\n{'='*60}")
+    print(f"Episode Summary:")
+    print(f"  Total steps: {i}")
+    print(f"  Total reward: {total_reward:.2f}")
+    
     state = await env.state()
-    print(f"Final state: {state}")
+    print(f"  Fulfillment rate: {state['fulfillment_rate']:.1%}")
+    print(f"  Final cost: ${state['total_cost']:.2f}")
+    print(f"  Avg inventory: {state['avg_warehouse_inventory']:.0f} units")
 
     await env.close()
+    print(f"\nDemo complete!")
 
 if __name__ == "__main__":
     asyncio.run(main())

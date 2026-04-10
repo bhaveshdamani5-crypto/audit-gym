@@ -2,51 +2,59 @@ import asyncio
 import os
 from typing import List
 from openai import OpenAI
-from src.env import AuditGymEnv
+from src.env import InventoryGymEnv
 from src.models import Action
 
 # Configuration
-TASK_NAME = os.getenv("TASK_NAME", "audit-hard")
-BENCHMARK = "AuditGym-v1"
+TASK_NAME = os.getenv("TASK_NAME", "inventory-hard")
+BENCHMARK = "InventoryGym-v1"
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY")
 MAX_STEPS = 100
 TEMPERATURE = 0.7
-MAX_TOKENS = 200
-IMAGE_NAME = "auditgym:latest"
+MAX_TOKENS = 100
 
 # Task configurations
 TASK_CONFIGS = {
-    "audit-easy": {"num_total": 100, "num_fraud": 1, "num_red_herring": 5, "max_steps": 50},
-    "audit-medium": {"num_total": 500, "num_fraud": 3, "num_red_herring": 25, "max_steps": 100},
-    "audit-hard": {"num_total": 1000, "num_fraud": 5, "num_red_herring": 50, "max_steps": 200}
+    "inventory-easy": {"num_warehouses": 1, "num_steps": 50, "lead_time": 5, "inventory_penalty_factor": 1.0},
+    "inventory-medium": {"num_warehouses": 3, "num_steps": 100, "lead_time": 3, "inventory_penalty_factor": 1.5},
+    "inventory-hard": {"num_warehouses": 5, "num_steps": 100, "lead_time": 2, "inventory_penalty_factor": 2.0}
 }
 
-config = TASK_CONFIGS.get(TASK_NAME, TASK_CONFIGS["audit-hard"])
-MAX_TOTAL_REWARD = config["num_fraud"] * 0.95
-SUCCESS_SCORE_THRESHOLD = 0.8
+config = TASK_CONFIGS.get(TASK_NAME, TASK_CONFIGS["inventory-hard"])
+SUCCESS_SCORE_THRESHOLD = 0.6
 
 SYSTEM_PROMPT = """
-You are an expert forensic auditor. Your task is to identify all fraudulent transactions in the dataset.
+You are a supply chain optimization expert managing a multi-warehouse inventory network.
 
-Transactions have: id, amount, date, description, verified (bool), extra_info (string).
+Your goal: Minimize costs while meeting customer demand across all warehouses.
 
-Actions you can take (respond with one command per step):
-- Query: "query amount > 5000" (filters to transactions with amount > 5000)
-- Verify: "verify id 123" (gets cross-reference info for transaction 123)
-- Flag: "flag id 123" (marks transaction 123 as fraudulent and removes it from view)
+State information provided each step:
+- Current inventory levels at each warehouse
+- Pending orders and their arrival times
+- Forecasted demand for next 5 steps
+- Running total cost
 
-Rewards:
-- Correct fraud flag: +0.95
-- False positive (red herring): +0.05
-- Correct clear: +0.70
-- Step penalty: -0.02
-- Query: +0.10
+Action: Place a replenishment order
+Format: "order <warehouse_id> <quantity> [priority]"
+Example: "order 0 500" or "order 2 300 expedited"
 
-Goal: Flag all 5 frauds. Fraud indicators: negative amounts or future dates.
+Constraints:
+- Each warehouse has a 3000 unit capacity
+- Standard orders take 2-3 steps to arrive (lead time)
+- Expedited orders arrive next step but cost 20% more
+- Holding cost: 0.5 per unit per step (expensive!)
+- Stockout penalty: -0.3 per unmet unit
 
-Respond with exactly one action command.
+Strategy:
+1. Monitor forecasted demand for each warehouse
+2. Track pending orders and their ETAs
+3. Order enough to meet demand but avoid over-stocking
+4. Balance between holding costs and stockout penalties
+5. Use expedited orders strategically during spikes
+
+Optimize for: High fulfillment rate + Low total cost
 """
 
 def log_start(task: str, env: str, model: str):
@@ -62,21 +70,45 @@ def log_end(success: bool, steps: int, score: float, rewards: list):
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(f"[END] success={success_str} steps={steps} score={score:.2f} rewards={rewards_str}", flush=True)
 
-def get_model_message(client: OpenAI, step: int, echoed_message: str, last_reward: float, history: list) -> str:
-    transactions_text = "\n".join([f"ID {t['id']}: Amount {t['amount']:.2f}, Date {t['date']}, Desc {t['description']}, Verified {t['verified']}, Info {t['extra_info']}" for t in echoed_message.get('transactions', [])]) if isinstance(echoed_message, dict) else "No transactions"
-
-    history_text = "\n".join(history[-5:])  # last 5
-
+def get_model_message(client: OpenAI, step: int, observation, last_reward: float, history: list) -> str:
+    # Format observation for LLM
+    warehouses_info = "\n".join([
+        f"Warehouse {w['id']}: {w['inventory']:.0f}/{w['capacity']} units (utilization: {w['utilization']:.1%})"
+        for w in observation.warehouses
+    ])
+    
+    pending_info = "None"
+    if observation.pending_orders:
+        pending_info = "\n".join([
+            f"Order {o['id']}: {o['quantity']:.0f} units to Warehouse {o['dest_warehouse']} (arrives in {o['steps_remaining']} steps)"
+            for o in observation.pending_orders
+        ])
+    
+    forecast_info = "\n".join([
+        f"Warehouse {f['warehouse_id']}: {f['next_5_steps']}"
+        for f in observation.forecasted_demand
+    ])
+    
+    history_context = "\n".join(history[-3:]) if history else "None"
+    
     user_prompt = f"""
-Current step: {step}
-Last reward: {last_reward:+.2f}
-History:
-{history_text}
+Step: {step}
+Last reward: {last_reward:.2f}
+Total cost so far: ${observation.total_cost:.2f}
 
-Current transactions:
-{transactions_text}
+Current Inventory:
+{warehouses_info}
 
-Your action:
+Pending Orders:
+{pending_info}
+
+5-Step Demand Forecast:
+{forecast_info}
+
+Recent History:
+{history_context}
+
+Decide your next ordering action:
 """
 
     try:
@@ -91,15 +123,15 @@ Your action:
             stream=False,
         )
         text = (completion.choices[0].message.content or "").strip()
-        return text if text else "query amount > 5000"
+        return text if text else "order 0 250"
     except Exception as exc:
         print(f"[DEBUG] Model request failed: {exc}", flush=True)
-        return "query amount > 5000"
+        return "order 0 250"
 
 async def main() -> None:
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
-    env = AuditGymEnv(**config)
+    env = InventoryGymEnv(**config)
 
     history: List[str] = []
     rewards: List[float] = []
@@ -111,36 +143,51 @@ async def main() -> None:
 
     try:
         result = await env.reset()
-        last_echoed = result.observation.dict()  # or something
         last_reward = 0.0
 
         for step in range(1, MAX_STEPS + 1):
             if result.done:
                 break
 
-            message = get_model_message(client, step, last_echoed, last_reward, history)
+            # Parse warehouse and quantity from action
+            action_text = get_model_message(client, step, result.observation, last_reward, history)
+            
+            # Simple parser: "order <warehouse> <quantity> [priority]"
+            parts = action_text.lower().split()
+            warehouse_id = 0
+            quantity = 250
+            priority = "normal"
+            
+            try:
+                if "order" in action_text.lower():
+                    if len(parts) >= 3:
+                        warehouse_id = int(parts[1])
+                        quantity = float(parts[2])
+                        if len(parts) > 3:
+                            priority = parts[3]
+            except (ValueError, IndexError):
+                pass
 
-            result = await env.step(Action(message=message))
-            obs = result.observation
-
+            action = Action(dest_warehouse=warehouse_id, quantity=quantity, priority=priority)
+            result = await env.step(action)
+            
             reward = result.reward or 0.0
             done = result.done
-            error = None
-
+            
             rewards.append(reward)
             steps_taken = step
-            last_echoed = obs.dict()
             last_reward = reward
 
-            log_step(step=step, action=message, reward=reward, done=done, error=error)
-
-            history.append(f"Step {step}: {message!r} -> reward {reward:+.2f}")
+            log_step(step=step, action=action_text, reward=reward, done=done, error=None)
+            history.append(f"Step {step}: {action_text} -> reward {reward:.2f}")
 
             if done:
                 break
 
-        score = sum(rewards) / MAX_TOTAL_REWARD if MAX_TOTAL_REWARD > 0 else 0.0
-        score = min(max(score, 0.0), 1.0)
+        # Final scoring
+        final_state = await env.state()
+        score = final_state.get('fulfillment_rate', 0.0) * 0.6 + (1.0 - min(final_state.get('total_cost', 1e9) / 50000, 1.0)) * 0.4
+        score = max(0.0, min(1.0, score))
         success = score >= SUCCESS_SCORE_THRESHOLD
 
     finally:
