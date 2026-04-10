@@ -44,9 +44,11 @@ class InventoryObservation(BaseModel):
     historical_summary: List[Dict[str, Any]]  # New: past performance context
     current_step: int
     total_cost: float
-    service_level: float                      # New: overall fulfillment rate
-    compliance_score: float                   # NEW: 0.01 - 0.99 normalized grade
-    market_intel: List[str]                   # NEW: NLP-based news/intel for reasoning
+    service_level: float                      # overall fulfillment rate
+    carbon_footprint: float                   # NEW: Environmental impact metric
+    sustainability_score: float               # NEW: Normalized ESG score (0.01 - 0.99)
+    compliance_score: float                   # Live Hackathon Grade
+    market_intel: List[str]                   # NLP news/intel
     last_action: Optional[str] = None
 
 
@@ -100,13 +102,18 @@ def initialize_warehouses(num_warehouses: int) -> List[Warehouse]:
     for i in range(num_warehouses):
         # Different warehouses have different cost profiles
         h_cost = 0.3 + (i * 0.1) 
+        cities = [
+            ("London Hub", "United Kingdom"), ("Tokyo Delta", "Japan"), 
+            ("Mumbai Nexus", "India"), ("Brooklyn Edge", "USA"), ("Frankfurt Core", "Germany")
+        ]
+        name, loc = cities[i % len(cities)]
         warehouse = Warehouse(
             id=i,
-            name=f"Warehouse-{chr(65+i)}",
+            name=name,
             inventory=random.uniform(600, 1000),
             capacity=4000,
             holding_cost_per_unit=h_cost,
-            location=locations[i % len(locations)]
+            location=loc
         )
         warehouses.append(warehouse)
     

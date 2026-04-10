@@ -34,6 +34,7 @@ class InventoryGymEnv:
         self.total_cost = 0.0
         self.total_demand = 0.0
         self.total_fulfilled = 0.0
+        self.total_carbon = 0.0
         self.last_action_desc = None
         
         # State: Shock & Intel status
@@ -49,6 +50,7 @@ class InventoryGymEnv:
         self.total_cost = 0.0
         self.total_demand = 0.0
         self.total_fulfilled = 0.0
+        self.total_carbon = 0.0
         self.last_action_desc = None
         self.pending_orders = []
         self.shock_steps_left = 0
@@ -128,6 +130,12 @@ class InventoryGymEnv:
                     if dest_region == self.shock_region:
                         premium += 0.8 # Higher impact for targeted logistics shock
                 
+                # Carbon Impact logic (Multi-objective optimization)
+                carbon_base = action.quantity * 0.01
+                carbon_mult = 4.0 if action.priority == "expedited" else 1.0
+                if action.origin_warehouse != -1: carbon_mult *= 0.5 # Local transshipment is greener
+                
+                self.total_carbon += carbon_base * carbon_mult
                 order_cost = action.quantity * (unit_price + premium)
                 self.total_cost += order_cost
                 reward -= order_cost * 0.0001
@@ -245,19 +253,21 @@ class InventoryGymEnv:
         }
 
     def _calculate_compliance_score(self) -> float:
-        """Calculate internal hackathon grade (0.01-0.99)"""
         global_sl = self.total_fulfilled / self.total_demand if self.total_demand > 0 else 1.0
         
-        # SL Score: Exponential decay below 88%
-        target_sl = 0.88
-        sl_score = 1.0 if global_sl >= target_sl else (global_sl / target_sl) ** 2
+        # 1. Service Level Score (Non-linear penalty for stockouts)
+        sl_score = math.pow(global_sl, 0.7)
         
-        # Cost Score: Ratio against a theoretical budget
-        theoretical_budget = (self.num_warehouses * 12000) + (self.current_step * self.num_warehouses * 50)
-        cost_score = min(1.0, theoretical_budget / max(self.total_cost, 1))
+        # 2. Cost Score (Efficiency)
+        target_cost = self.total_demand * 1.5
+        cost_score = max(0, 1 - (self.total_cost / target_cost)) if target_cost > 0 else 1.0
         
-        # Composite
-        score = (0.6 * sl_score) + (0.4 * cost_score)
+        # 3. Sustainability Bonus (ESG factor)
+        carbon_limit = self.total_demand * 0.05
+        sus_score = max(0, 1 - (self.total_carbon / carbon_limit)) if carbon_limit > 0 else 1.0
+        
+        # Composite Weighting (60% SL, 25% Cost, 15% ESG)
+        score = (0.6 * sl_score) + (0.25 * cost_score) + (0.15 * sus_score)
         return max(0.01, min(0.99, score))
 
     def _get_obs(self) -> InventoryObservation:
@@ -298,6 +308,8 @@ class InventoryGymEnv:
             current_step=self.current_step,
             total_cost=round(self.total_cost, 2),
             service_level=round(global_sl, 4),
+            carbon_footprint=round(self.total_carbon, 2),
+            sustainability_score=max(0.01, min(0.99, (1 - (self.total_carbon / (self.total_demand * 0.05 + 1))))),
             compliance_score=round(self._calculate_compliance_score(), 4),
             market_intel=self.market_intel,
             last_action=action_desc

@@ -170,24 +170,24 @@ async def dashboard():
             </div>
             
             <div class="hidden md:flex gap-10">
-                <div class="text-center group" title="Internal AI Reinforcement (Goal: Positive Trend)">
-                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">AI Reward</p>
-                    <p id="top-reward" class="text-base font-bold text-emerald-400">0</p>
+                <div class="text-center group" title="Environmental, Social, and Governance Score">
+                    <p class="text-[9px] text-emerald-500 uppercase font-bold tracking-widest mb-1">ESG Sustainability</p>
+                    <p id="top-esg" class="text-base font-bold text-emerald-400">0.99</p>
                 </div>
                 <div class="h-8 w-[1px] bg-slate-800"></div>
                 <div class="text-center group" title="Official Hackathon Grade">
-                    <p class="text-[9px] text-amber-500 uppercase font-bold tracking-widest mb-1">Final Score</p>
+                    <p class="text-[9px] text-amber-500 uppercase font-bold tracking-widest mb-1">Inference Grade</p>
                     <p id="top-score" class="text-lg font-bold text-amber-400">0.01</p>
                 </div>
                 <div class="h-8 w-[1px] bg-slate-800"></div>
                 <div class="text-center group">
-                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">Fulfillment %</p>
+                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">Global Fulfillment</p>
                     <p id="top-sl" class="text-base font-bold text-blue-400">100.0%</p>
                 </div>
                 <div class="h-8 w-[1px] bg-slate-800"></div>
                 <div class="text-center group">
-                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">System Cost</p>
-                    <p id="top-cost" class="text-base font-bold text-slate-300">$0</p>
+                    <p class="text-[9px] text-rose-500 uppercase font-bold tracking-widest mb-1">Carbon Footprint (g/CO2)</p>
+                    <p id="top-carbon" class="text-base font-bold text-rose-400">0</p>
                 </div>
             </div>
 
@@ -200,11 +200,13 @@ async def dashboard():
         <main class="flex-grow p-6 grid grid-cols-12 gap-6 max-w-[1800px] mx-auto w-full">
             <div class="col-span-12 xl:col-span-8 space-y-6">
                 <div class="glass-panel rounded-3xl p-8 h-[450px] relative overflow-hidden group border border-white/5">
-                    <div class="absolute top-8 left-8 z-10"><div class="flex items-center gap-3 mb-1"><span class="p-2 bg-blue-500/10 rounded-lg"><i data-lucide="globe" class="text-blue-400 w-5 h-5"></i></span><h3 class="text-xl font-bold">Network Topology Flow</h3></div></div>
+                    <div class="absolute inset-0 flex items-center justify-center p-12 mt-12 opacity-40 mix-blend-screen pointer-events-none">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg" class="w-full h-full object-contain filter invert opacity-10">
+                    </div>
                     <div class="absolute inset-0 flex items-center justify-center p-12 mt-12">
                         <svg viewBox="0 0 800 400" id="network-svg" class="w-full h-full drop-shadow-2xl">
                             <defs><filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter></defs>
-                            <g transform="translate(100, 200)" filter="url(#glow)"><circle r="6" fill="white" /><text y="35" text-anchor="middle" fill="white" font-size="10" font-family="Space Grotesk" font-weight="bold">SUPPLIER</text></g>
+                            <g transform="translate(400, 50)" filter="url(#glow)"><circle r="8" fill="white" class="animate-pulse" /><text y="35" text-anchor="middle" fill="white" font-size="10" font-family="Space Grotesk" font-weight="bold">GLOBAL SUPPLIER</text></g>
                             <g id="map-links"></g><g id="map-nodes"></g>
                         </svg>
                     </div>
@@ -299,8 +301,10 @@ async def dashboard():
                 terminal.prepend(div); if (terminal.children.length > 25) terminal.removeChild(terminal.lastChild);
             }
             function updateUI(obs, reward = 0) {
-                lucide.createIcons(); animateCounter('top-reward', reward, reward >= 0 ? '+' : '');
-                animateCounter('top-cost', obs.total_cost, '$'); animateCounter('top-sl', obs.service_level * 100, '', '%');
+                lucide.createIcons(); 
+                animateCounter('top-esg', obs.sustainability_score, '');
+                animateCounter('top-carbon', obs.carbon_footprint, ''); 
+                animateCounter('top-sl', obs.service_level * 100, '', '%');
                 animateCounter('top-score', obs.compliance_score, '');
                 document.getElementById('step-counter').innerText = `${obs.current_step.toString().padStart(2, '0')} / 100`;
                 document.getElementById('step-progress').style.width = `${obs.current_step}%`;
@@ -336,9 +340,12 @@ async def dashboard():
                 }).join('');
                 let linkHtml = '', nodeHtml = '';
                 obs.warehouses.forEach((w, i) => {
-                    const tx = 350 + (i % 2 === 0 ? 0 : 250); const ty = 80 + i * 80;
-                    linkHtml += `<path d="M 120 200 C 200 200, 250 ${ty}, ${tx} ${ty}" stroke="rgba(59, 130, 246, 0.4)" stroke-width="1.5" fill="none" class="node-link" />`;
-                    nodeHtml += `<g transform="translate(${tx}, ${ty})"><circle r="12" fill="rgba(255,255,255,0.05)" stroke="${w.utilization > 0.8 ? '#f43f5e' : '#3b82f6'}" stroke-width="1" stroke-dasharray="2 2" /><circle r="5" fill="${w.utilization > 0.8 ? '#f43f5e' : '#3b82f6'}" /><text x="18" y="4" fill="white" font-size="9" font-family="Space Grotesk" font-weight="bold">${w.name}</text></g>`;
+                    const coords = [
+                        {x: 150, y: 150}, {x: 650, y: 180}, {x: 500, y: 300}, {x: 200, y: 320}, {x: 400, y: 250}
+                    ][i % 5];
+                    const tx = coords.x; const ty = coords.y;
+                    linkHtml += `<path d="M 400 50 C 400 100, ${tx} 100, ${tx} ${ty}" stroke="rgba(59, 130, 246, 0.4)" stroke-width="1.5" fill="none" class="node-link" />`;
+                    nodeHtml += `<g transform="translate(${tx}, ${ty})"><circle r="14" fill="rgba(255,255,255,0.05)" stroke="${w.utilization > 0.8 ? '#f43f5e' : '#3b82f6'}" stroke-width="1" stroke-dasharray="2 2" /><circle r="6" fill="${w.utilization > 0.8 ? '#f43f5e' : '#3b82f6'}" class="animate-pulse" /><text x="20" y="4" fill="white" font-size="10" font-family="Space Grotesk" font-weight="bold">${w.name}</text></g>`;
                 });
                 document.getElementById('map-links').innerHTML = linkHtml; document.getElementById('map-nodes').innerHTML = nodeHtml;
                 history.step.push(obs.current_step); history.demand.push(obs.forecasted_demand.reduce((acc, f) => acc + f.next_5_steps[0], 0));
