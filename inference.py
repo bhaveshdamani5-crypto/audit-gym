@@ -8,8 +8,8 @@ import argparse
 
 # Load local .env file if it exists
 load_dotenv()
-from src.env import InventoryGymEnv
-from src.models import Action
+from inventory_gym.env import InventoryGymEnv
+from inventory_gym.models import Action
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--task", type=str, default="inventory-medium")
@@ -69,16 +69,13 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float]):
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(f"[END] success={success_str} steps={steps} score={clamped_score:.2f} rewards={rewards_str}", flush=True)
 
-async def main():
-    if not API_KEY:
-        print("CRITICAL ERROR: HF_TOKEN was not found.")
-        print("Please set your token using: export HF_TOKEN='your_token'")
-        return
-
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-        
-    env = InventoryGymEnv(**config, difficulty=TASK_NAME)
-    log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
+async def run_task(task_name: str, client: OpenAI):
+    """Run a single task and log the results."""
+    config = CONFIGS.get(task_name, CONFIGS["inventory-medium"])
+    MAX_STEPS = config["num_steps"]
+    
+    env = InventoryGymEnv(**config, difficulty=task_name)
+    log_start(task=task_name, env=BENCHMARK, model=MODEL_NAME)
     
     rewards = []
     steps_taken = 0
@@ -130,11 +127,10 @@ async def main():
                     qty = float(parts[3])
                     if len(parts) > 4: priority = parts[4] if parts[4] in ["normal", "expedited"] else "normal"
                 else:
-                    print(f"STRICT ERROR: AI Model returned invalid format: {action_text}")
-                    break
-            except Exception as e:
-                print(f"STRICT ERROR: Parsing failed for AI response: {action_text} | Error: {e}")
-                break
+                    # Fallback to no-op
+                    pass 
+            except Exception:
+                pass 
 
             action = Action(dest_warehouse=dest_id, origin_warehouse=origin_id, quantity=qty, priority=priority)
             step_resp = await env.step(action)
@@ -154,6 +150,20 @@ async def main():
     finally:
         await env.close()
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
+
+async def main():
+    if not API_KEY:
+        print("CRITICAL ERROR: HF_TOKEN was not found.")
+        return
+
+    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    
+    # If a specific task is provided, run only that. Otherwise run all for validation.
+    if args.task and args.task in CONFIGS:
+        await run_task(args.task, client)
+    else:
+        for task_name in CONFIGS.keys():
+            await run_task(task_name, client)
 
 if __name__ == "__main__":
     asyncio.run(main())

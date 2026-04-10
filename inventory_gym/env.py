@@ -248,17 +248,6 @@ class InventoryGymEnv:
             done=done
         )
 
-    async def state(self) -> Dict[str, Any]:
-        global_sl = self.total_fulfilled / self.total_demand if self.total_demand > 0 else 0.0
-        return {
-            "step": self.current_step,
-            "total_cost": round(self.total_cost, 2),
-            "service_level": round(global_sl, 4),
-            "pending_count": len(self.pending_orders),
-            "total_inventory": sum(w.inventory for w in self.warehouses),
-            "shock_active": self.shock_steps_left > 0
-        }
-
     def _calculate_compliance_score(self) -> float:
         global_sl = self.total_fulfilled / self.total_demand if self.total_demand > 0 else 1.0
         

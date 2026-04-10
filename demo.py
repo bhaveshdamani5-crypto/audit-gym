@@ -5,8 +5,8 @@ Runs one sample episode demonstrating inventory management decisions
 """
 
 import asyncio
-from src.env import InventoryGymEnv
-from src.models import Action
+from inventory_gym.env import InventoryGymEnv
+from inventory_gym.models import Action
 
 async def main():
     print("InventoryGym-v1 Demo: Supply Chain Management")

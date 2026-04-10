@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "inventory-gym"
+name = "inventory_gym"
 version = "1.0.0"
 description = "Global Strategic Resource Continuity Environment for Meta OpenEnv Hackathon"
 readme = "README.md"
@@ -22,12 +22,13 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "openenv-core",
-    "python-dotenv"
+    "python-dotenv",
+    "uv"
 ]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src*", "server*"]
+include = ["inventory_gym*", "server*"]
 
 [project.scripts]
 server = "server.app:main"

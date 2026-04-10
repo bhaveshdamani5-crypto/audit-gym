@@ -7,20 +7,20 @@ tasks:
   - id: inventory-easy
     difficulty: easy
     description: "Manage a single local hub with stable demand patterns."
-    grader: src.grader.grade_easy
+    grader: inventory_gym.grader.grade_easy
   - id: inventory-medium
     difficulty: medium
     description: "Coordinate a 3-node global network (London, Tokyo, Mumbai) with occasional regional shocks."
-    grader: src.grader.grade_medium
+    grader: inventory_gym.grader.grade_medium
   - id: inventory-hard
     difficulty: hard
     description: "Secure a 5-node global nexus against continuous systemic shocks and ESG constraints."
-    grader: src.grader.grade_hard
+    grader: inventory_gym.grader.grade_hard
 models:
-  action: src.models.Action
-  observation: src.models.InventoryObservation
-  step_response: src.models.StepResponse
-  reset_response: src.models.ResetResponse
-  warehouse: src.models.Warehouse
-  order: src.models.Order
-environment: src.env.InventoryGymEnv
+  action: inventory_gym.models.Action
+  observation: inventory_gym.models.InventoryObservation
+  step_response: inventory_gym.models.StepResponse
+  reset_response: inventory_gym.models.ResetResponse
+  warehouse: inventory_gym.models.Warehouse
+  order: inventory_gym.models.Order
+environment: inventory_gym.env.InventoryGymEnv

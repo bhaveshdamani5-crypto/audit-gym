@@ -12,8 +12,8 @@ import sys
 # Ensure src namespace is discoverable from root
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.env import InventoryGymEnv
-from src.models import Action
+from inventory_gym.env import InventoryGymEnv
+from inventory_gym.models import Action
 from openai import OpenAI
 from dotenv import load_dotenv
 

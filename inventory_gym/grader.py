@@ -3,11 +3,12 @@ Grader functions for evaluating agent performance on InventoryGym tasks.
 Evaluates the trade-off between Supply Chain Stability (Service Level) and Cost Efficiency.
 """
 
-def grade_easy(state):
+def grade_easy(state=None):
     """
     Easy: 1 Warehouse. Baseline for learning basic replenishment.
     Requires >92% Service Level and stable costs.
     """
+    state = state or {}
     return _compute_composite_score(
         state,
         target_sl=0.92,
@@ -15,11 +16,12 @@ def grade_easy(state):
         sl_weight=0.7
     )
 
-def grade_medium(state):
+def grade_medium(state=None):
     """
     Medium: 3 Warehouses. Coordination and basic forecasting needed.
     Requires >88% Service Level across network.
     """
+    state = state or {}
     return _compute_composite_score(
         state,
         target_sl=0.88,
@@ -27,11 +29,12 @@ def grade_medium(state):
         sl_weight=0.6
     )
 
-def grade_hard(state):
+def grade_hard(state=None):
     """
     Hard: 5 Warehouses + Volatile Demand. Advanced optimization required.
     Requires resilient strategy against demand shocks.
     """
+    state = state or {}
     return _compute_composite_score(
         state,
         target_sl=0.85,
