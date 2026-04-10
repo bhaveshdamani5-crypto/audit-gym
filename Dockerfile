@@ -12,12 +12,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Expose port (OpenEnv standard and HF Space)
-EXPOSE 8000
+# Expose port (HF Space default)
+EXPOSE 7860
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/state || exit 1
+  CMD curl -f http://localhost:7860/state || exit 1
 
 # Start the environment server
 # Using uvicorn to serve the FastAPI app
