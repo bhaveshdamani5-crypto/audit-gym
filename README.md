@@ -24,6 +24,15 @@ As a Round 1 submission, our goal is to demonstrate that an RL agent, when given
 
 ---
 
+## 👨‍⚖️ Judges' Quick-Look Repo Summary
+- **Track**: OpenEnv Environment Development
+- **Core Innovation**: Multi-node Transshipment & Stochastic Shock Logic
+- **API Spec**: OpenEnv v1 (Pydantic models, JSON-RPC compliant)
+- **Scoring Range**: 0.01 - 0.99 (Strictly Clamped)
+- **Solvability**: Proven via AEGIS Heuristic Baseline (Avg Score: 0.88)
+
+---
+
 ## 🛰️ Environment Topology & Intelligence
 
 ![Network Topology](https://raw.githubusercontent.com/bhaveshdamani5-crypto/inventory-gym/assets/assets/topology.png)
@@ -33,6 +42,29 @@ Agents manage a multi-hub network where every node acts as a semi-autonomous ent
 - **Horizontal Transshipment**: Moving stock between warehouses to balance localized shocks without engaging the high-cost central supplier.
 - **Stochastic Lead Times**: Simulating real-world "Logistics Friction" where shipments may experience probabilistic delays.
 - **Systemic Shocks**: Random multi-cycle events (Demand Spikes or Supply Chain Bottlenecks) that require rapid tactical re-alignment.
+
+---
+
+## 🧠 Technical Specifications
+
+### 1. Observation Space (`InventoryObservation`)
+The environment returns a full system snapshot every step:
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `warehouses` | `List[Warehouse]` | ID, current stock, capacity, and cost profile for all nodes. |
+| `pending_orders` | `List[Order]` | Real-time tracking of ETA and volume for shipments in transit. |
+| `forecasted_demand`| `List[Forecast]` | A 5-step rolling window forecast for every individual node. |
+| `current_step` | `int` | Current progress in the 100-step episode. |
+| `total_cost` | `float` | Cumulative operational expenditures (Holding + Logistics). |
+| `service_level` | `float` | Overall fulfillment rate (Fulfilled Demand / Total Demand). |
+| `compliance_score` | `float` | **Live Hackathon Grade** (0.01-0.99) calculated via grader. |
+
+### 2. Action Space (`Action`)
+Agents control the system via a discrete/continuous hybrid action:
+- `dest_warehouse`: (int) The target node for receiving stock.
+- `quantity`: (float) Volume of inventory to move.
+- `origin_warehouse`: (int) **-1** for Global Supplier, or a **Warehouse ID** for cross-node transshipment.
+- `priority`: (str) `"normal"` (standard cost/time) or `"expedited"` (rush cost/time).
 
 ---
 
@@ -87,7 +119,7 @@ Testing conducted using the **AEGIS Heuristic Baseline** via the Hugging Face Ro
 ## 🚀 Deployment & Evaluation
 
 ### Dashboard Telemetry
-View the **Glassmorphism Dashboard** live at `http://localhost:7860`. It provides real-time Plotly visualizations of demand trends and inventory stockpiles.
+View the **Glassmorphism Dashboard** live at `7860`. It provides real-time Plotly visualizations of demand trends and inventory stockpiles.
 
 ### Baseline Inference
 ```bash
