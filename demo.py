@@ -57,9 +57,9 @@ async def main():
     print(f"  Total reward: {total_reward:.2f}")
     
     state = await env.state()
-    print(f"  Fulfillment rate: {state['fulfillment_rate']:.1%}")
+    print(f"  Service level: {state['service_level']:.1%}")
     print(f"  Final cost: ${state['total_cost']:.2f}")
-    print(f"  Avg inventory: {state['avg_warehouse_inventory']:.0f} units")
+    print(f"  Total inventory: {state['total_inventory']:.0f} units")
 
     await env.close()
     print(f"\nDemo complete!")
