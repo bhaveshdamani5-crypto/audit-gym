@@ -110,9 +110,3 @@ View the **Neural Strategic Nexus** live at `7860`. Features:
 - **Geospatial Map**: Pulsing supply lines and regional hub telemetry.
 - **Neural Inference Stream**: View the AI's "thought process" and strategic intent.
 - **ESG Metrics**: Real-time tracking of CO2 footprints.
-
----
-
-**Vision & Strategy by StrategyAlpha Team.**  
-**Framework: Meta OpenEnv v1 Protocol.**  
-**Academic Support: Scalar School of Technology (SST).**
