@@ -99,7 +99,7 @@ async def dashboard():
         <title>InventoryGym-v1 | Supply Intelligence Elite</title>
         
         <!-- UI Libraries -->
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.27.0/plotly.min.js"></script>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
         <script src="https://unpkg.com/lucide@latest"></script>
@@ -359,8 +359,8 @@ async def dashboard():
                 chartData.step.push(obs.current_step); chartData.demand.push(obs.forecasted_demand.reduce((acc, f) => acc + f.next_5_steps[0], 0));
                 chartData.cost.push(obs.total_cost); chartData.sl.push(obs.service_level);
                 const layout = { margin: { t: 5, b: 30, l: 40, r: 10 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { color: '#475569', size: 9, family: 'Space Grotesk' }, xaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false }, yaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false } };
-                Plotly.react('demand-chart', [{ x: chartData.step, y: chartData.demand, type: 'scatter', line: { color: '#3b82f6', width: 2, shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.05)' }], layout);
-                Plotly.react('inventory-chart', [{ x: obs.warehouses.map(w => w.name), y: obs.warehouses.map(w => w.inventory), type: 'bar', marker: { color: 'rgba(59, 130, 246, 0.6)' } }], layout);
+                Plotly.newPlot('demand-chart', [{ x: chartData.step, y: chartData.demand, type: 'scatter', line: { color: '#3b82f6', width: 2, shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.05)' }], layout);
+                Plotly.newPlot('inventory-chart', [{ x: obs.warehouses.map(w => w.name), y: obs.warehouses.map(w => w.inventory), type: 'bar', marker: { color: 'rgba(59, 130, 246, 0.6)' } }], layout);
             }
             function animateCounter(id, target, prefix = '', suffix = '') {
                 const el = document.getElementById(id); const current = parseFloat(el.innerText.replace(/[^\d.-]/g, '')) || 0;
