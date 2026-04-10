@@ -7,12 +7,15 @@ tasks:
   - id: inventory-easy
     difficulty: easy
     description: "Manage a single local hub with stable demand patterns."
+    grader: src.grader.grade_easy
   - id: inventory-medium
     difficulty: medium
     description: "Coordinate a 3-node global network (London, Tokyo, Mumbai) with occasional regional shocks."
+    grader: src.grader.grade_medium
   - id: inventory-hard
     difficulty: hard
     description: "Secure a 5-node global nexus against continuous systemic shocks and ESG constraints."
+    grader: src.grader.grade_hard
 models:
   action: src.models.Action
   observation: src.models.InventoryObservation
