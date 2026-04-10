@@ -1,11 +1,23 @@
-name: InventoryGym
-version: v1
-description: A supply chain inventory management environment for learning cost-efficient warehouse operations
+name: InventoryGym-v1
+version: 1.0.0
+description: "Global Strategic Resource Management & ESG Resilience Environment"
+type: openenv
+tags: ["supply-chain", "logistics", "ai-reasoning", "multi-objective", "esg"]
+tasks:
+  - id: inventory-easy
+    difficulty: easy
+    description: "Manage a single local hub with stable demand patterns."
+  - id: inventory-medium
+    difficulty: medium
+    description: "Coordinate a 3-node global network (London, Tokyo, Mumbai) with occasional regional shocks."
+  - id: inventory-hard
+    difficulty: hard
+    description: "Secure a 5-node global nexus against continuous systemic shocks and ESG constraints."
 models:
-  - src.models.Action
-  - src.models.InventoryObservation
-  - src.models.ResetResponse
-  - src.models.StepResponse
-  - src.models.Warehouse
-  - src.models.Order
-environment: src.env:InventoryGymEnv
+  action: src.models.Action
+  observation: src.models.InventoryObservation
+  step_response: src.models.StepResponse
+  reset_response: src.models.ResetResponse
+  warehouse: src.models.Warehouse
+  order: src.models.Order
+environment: src.env.InventoryGymEnv

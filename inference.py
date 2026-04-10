@@ -54,14 +54,14 @@ def log_start(task: str, env: str, model: str):
 
 def log_step(step: int, action: str, reward: float, done: bool, error: str = "null"):
     done_str = "true" if done else "false"
-    error_str = error if error else "null"
-    print(f"[STEP] step={step} action={action!r} reward={reward:.2f} done={done_str} error={error_str}", flush=True)
+    error_str = error if error is not None and error != "" else "null"
+    print(f"[STEP] step={step} action={action} reward={reward:.2f} done={done_str} error={error_str}", flush=True)
 
-def log_end(success: bool, steps: int, score: float, rewards: List[float], task: str):
+def log_end(success: bool, steps: int, score: float, rewards: List[float]):
     success_str = "true" if success else "false"
     clamped_score = max(0.01, min(0.99, score))
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
-    print(f"[END] task={task} success={success_str} steps={steps} score={clamped_score:.2f} rewards={rewards_str}", flush=True)
+    print(f"[END] success={success_str} steps={steps} score={clamped_score:.2f} rewards={rewards_str}", flush=True)
 
 async def main():
     if not API_KEY:
@@ -71,7 +71,7 @@ async def main():
 
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
         
-    env = InventoryGymEnv(**config)
+    env = InventoryGymEnv(**config, difficulty=TASK_NAME)
     log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
     
     rewards = []
@@ -147,7 +147,7 @@ async def main():
 
     finally:
         await env.close()
-        log_end(success=success, steps=steps_taken, score=score, rewards=rewards, task=TASK_NAME)
+        log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
 
 if __name__ == "__main__":
     asyncio.run(main())

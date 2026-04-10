@@ -19,11 +19,17 @@ class InventoryGymEnv:
     - Tiered Costs: Economies of scale in ordering.
     """
     
-    def __init__(self, num_warehouses=3, num_steps=100, lead_time=4, inventory_penalty_factor=1.0):
+    def __init__(self, num_warehouses=3, num_steps=100, lead_time=4, inventory_penalty_factor=1.0, difficulty="medium"):
         self.num_warehouses = num_warehouses
         self.num_steps = num_steps
         self.lead_time = lead_time
         self.inventory_penalty_factor = inventory_penalty_factor
+        self.difficulty = difficulty
+        
+        # Difficulty scaling (Intel frequency)
+        self.shock_prob = 0.05
+        if difficulty == "easy": self.shock_prob = 0.0
+        elif difficulty == "hard": self.shock_prob = 0.15
         
         self.current_step = 0
         self.warehouses: List[Warehouse] = []
@@ -91,7 +97,7 @@ class InventoryGymEnv:
         
         # C. Generate new upcoming shocks (Predictive Reasoning Gap)
         if len(self.upcoming_shocks) == 0 and self.shock_steps_left == 0:
-            if random.random() < 0.05: # 5% chance of a new event brewing
+            if random.random() < self.shock_prob: # Scaled by difficulty
                 type = random.choice(["demand", "logistics"])
                 region = random.choice(["North", "South", "East", "West", "Central"])
                 countdown = random.randint(2, 4) # News precedes shock by 2-4 steps
