@@ -395,8 +395,28 @@ async def dashboard():
                     yaxis: { gridcolor: 'rgba(255,255,255,0.02)', zeroline: false } 
                 };
                 const config = { responsive: true, displayModeBar: false };
-                Plotly.react('demand-chart', [{ x: chartData.step, y: chartData.demand, type: 'scatter', line: { color: '#3b82f6', width: 2, shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.05)' }], layout, config);
-                Plotly.react('inventory-chart', [{ x: obs.warehouses.map(w => w.name), y: obs.warehouses.map(w => w.inventory), type: 'bar', marker: { color: '#3b82f6' }, opacity: 0.8 }], layout, config);
+                const forecastData = obs.forecasted_demand[0].next_5_steps.map((_, idx) => {
+                    return obs.forecasted_demand.reduce((acc, f) => acc + f.next_5_steps[idx], 0);
+                });
+                const forecastSteps = obs.forecasted_demand[0].next_5_steps.map((_, idx) => obs.current_step + idx);
+
+                Plotly.react('demand-chart', [
+                    { 
+                        x: chartData.step, y: chartData.demand, name: 'Actual',
+                        type: 'scatter', mode: 'lines+markers', line: { color: '#3b82f6', width: 3, shape: 'spline' }, 
+                        fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.1)' 
+                    },
+                    { 
+                        x: forecastSteps, y: forecastData, name: 'Forecast',
+                        type: 'scatter', mode: 'lines', line: { color: '#60a5fa', width: 2, dash: 'dot' }
+                    }
+                ], layout, config);
+
+                Plotly.react('inventory-chart', [{ 
+                    x: obs.warehouses.map(w => w.name), 
+                    y: obs.warehouses.map(w => w.inventory), 
+                    type: 'bar', marker: { color: '#3b82f6' }, opacity: 0.8 
+                }], layout, config);
             }
             function animateCounter(id, target, prefix = '', suffix = '') {
                 const el = document.getElementById(id); const current = parseFloat(el.innerText.replace(/[^\d.-]/g, '')) || 0;
