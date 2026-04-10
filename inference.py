@@ -2,6 +2,10 @@ import asyncio
 import os
 from typing import List
 from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load local .env file if it exists
+load_dotenv()
 from src.env import InventoryGymEnv
 from src.models import Action
 

@@ -8,3 +8,4 @@ asyncio
 fastapi
 uvicorn
 openenv-core
+python-dotenv
