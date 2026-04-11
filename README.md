@@ -8,117 +8,111 @@ app_file: server/app.py
 pinned: false
 ---
 
-# 🌍 InventoryGym: Global Strategic Resource Continuity
+# 🌍 InventoryGym: Global Strategic Resource & ESG Intelligence
 
 ![Project Banner](https://raw.githubusercontent.com/bhaveshdamani5-crypto/inventory-gym/assets/assets/hero.png)
 
-> **"In a world of stochastic geopolitical shocks, logistics is no longer about moving boxes—it is about the rapid, resilient mobilization of global intelligence."**
+> **"In an era of cascading geopolitical shocks and climate imperatives, the world requires more than logistics—it requires Automated Global Strategic Intelligence."**
 
 ---
 
-## 🏛️ Executive Summary: The "Reasoning Gap" Solution
-**InventoryGym: Global Strategic Nexus** is an elite, production-grade Reinforcement Learning (RL) sandbox engineered for the **Meta PyTorch OpenEnv Hackathon 2026**.
+## 🏛️ Executive Summary: The "Digital Twin" for AI Reasoning
+**InventoryGym-v1** is a production-grade, high-fidelity Reinforcement Learning (RL) environment engineered for the **Meta PyTorch OpenEnv Hackathon 2026**. 
 
-While traditional logistics environments focus on reactive inventory math (grid-worlds), **InventoryGym** introduces a **reasoning gap** that requires Large Language Models (LLMs) to succeed. It models a multi-hub global network where agents must navigate **Predictive NLP Market Intelligence**, **Multi-Objective ESG Constraints**, and **Stochastic Geopolitical Friction**.
-
----
-
-## 🎯 Key Technical Innovations
-
-### 1. The Proactive "Reasoning Gap" (NLP Feed)
-Unlike static environments, **InventoryGym** emits unstructured Natural Language "Market Intel." 
-*   **The Intelligence Signal**: News of a labor strike in Tokyo or a viral surge in New York is emitted **3–4 steps before** it manifests in the demand arrays.
-*   **The LLM Advantage**: Only models capable of semantic foresight can route stock *proactively*. Rule-based or pure RL agents will always be "behind the shock."
-
-### 2. Multi-Objective ESG Stewardship
-We have integrated a strict **Environmental, Social, and Governance (ESG)** layer into the core reward function. Agents must make complex trade-offs:
-*   **Expedited (Air Freight)**: Solves emergencies but incurs a massive **4x Carbon Penalty**.
-*   **Transshipment**: Moving stock between nodes (Network Balancing) provides a **0.5x Green Bonus** compared to global replenishment.
-
-### 3. "Finals-Grade" Cloud Validation
-This environment is 100% compliant with the **OpenEnv CLI** and the Meta Cloud Validator:
-*   ✅ **Zero-Parameter Reflection**: Graders are compatible with automated reflection testing.
-*   ✅ **Strict Score Clamping**: All grades are clamped to `[0.01, 0.99]` to prevent binary validation failures.
-*   ✅ **Robust Regex Baseline**: Includes a baseline inference script that handles LLM "chattiness" without crashing.
+It represents a **Digital Twin** of a multi-node global supply chain (London, Tokyo, Mumbai, New York, Frankfurt). Unlike traditional logistics benchmarks that focus on static replenishment, InventoryGym introduces a **Semantic Reasoning Gap**: the environment emits unstructured Natural Language "Market Intel" that signals future systemic shocks (strikes, storms, viral demand) before they manifest in the mathematical demand arrays.
 
 ---
 
-## 🧬 Environment Architecture
+## 🛰️ Technical Innovations (The "Elite" Edge)
 
-### State Space (`InventoryObservation`)
-The observation is a high-fidelity Pydantic-validated snapshot:
+### 1. The Proactive Reasoning Gap (NLP Intelligence)
+Standard RL models fail this environment because they only react to numerical changes. 
+*   **The Challenge**: A news flash might announce a *"Labor dispute at primary port"* 4 steps before a logistics blackout hits a region.
+*   **The Intelligence Requirement**: The AI must use its **Foundational LLM Brain** to deduce that it needs to recompute its logic *before* the math changes. This bridges the gap between **Perception** and **Optimization**.
 
-| Component | Information Provided |
-| :--- | :--- |
-| **Warehouses** | Real-time inventory, capacity, and utilization for global hubs (London, Tokyo, Mumbai, NY, Frankfurt). |
-| **Market Intel** | A stream of unstructured NLP news fragments signaling future demand or logistics shocks. |
-| **Forecasts** | A 5-step rolling window of "Predicted" demand (stochastic and seasonal). |
-| **ESG Metrics** | Accumulated Carbon Footprint and Sustainability Grade (0.01–0.99). |
-| **Pending Orders** | ETA and quantity of incoming shipments (Normal vs. Expedited). |
+### 2. Multi-Objective ESG Stewardship (Sustainable Ops)
+We have integrated a strict **Environmental, Social, and Governance (ESG)** objective layer. Success is no longer just about profit—it is about **Resource Responsibility**:
+*   **Standard Operations**: Sustainable, low-carbon maritime/ground flow.
+*   **Expedited Ops (Air Freight)**: Solves emergencies but incurs a **4.0x Carbon Penalty**.
+*   **Horizontal Transshipment**: Moving stock between global nodes (Networking) provides a **0.5x Green Bonus**, rewarding agents for coordination over raw brute-force ordering.
 
-### Action Space (`Action`)
-*   `dest_warehouse`: ID of the target hub.
-*   `origin_warehouse`: `-1` (Global Supplier) or `Hub ID` (Transshipment).
-*   `quantity`: Amount of resources to move.
-*   `priority`: `"normal"` (Sustainable/Slow) vs. `"expedited"` (Carbon-heavy/Fast).
+### 3. OpenEnv Cloud Integrity
+The project is built for seamless 100% automated validation:
+*   ✅ **Sync/Async Native**: Full support for `async` environment loops.
+*   ✅ **Grader Reflection**: All graders use the `(trajectory: dict = None)` signature to handle parameterless reflection checks.
+*   ✅ **Score Clamping**: Logic strictly clamps all returns to `[0.01, 0.99]` to ensure stability in automated ranking systems.
 
 ---
 
-## 📈 The Intelligence Loop
+## 🧬 Environment Specifications
+
+### 📍 Observation Space (`InventoryObservation`)
+A high-fidelity snapshot defined by a strict Pydantic schema:
+
+| Field | Description | AI Strategic Value |
+| :--- | :--- | :--- |
+| `warehouses` | Real-time stock, location data, and capacity utilization. | Core state management. |
+| `market_intel` | Unstructured NLP news fragments (e.g., "Trending: Tokyo Viral Surge"). | **Predictive Reasoning.** |
+| `forecasted_demand` | 5-step rolling window of seasonal demand patterns. | Short-term optimization. |
+| `carbon_footprint` | Cumulative CO2 impact of all logical decisions. | **ESG Constraint Management.** |
+| `compliance_score` | Official 0.01 - 0.99 grade for the current trajectory. | Real-time feedback. |
+
+### 🛠️ Action Space (`Action`)
+*   `dest_warehouse`: Target node for resource allocation.
+*   `origin_warehouse`: `-1` (Global Supplier) or `Hub ID` (Network-to-Network Transshipment).
+*   `quantity`: Volume allocation.
+*   `priority`: `"normal"` (Sustainable) vs. `"expedited"` (Carbon-heavy).
+
+---
+
+## 📈 The Neural Intelligence Loop
 
 ```mermaid
 graph TD
-    A[AEGIS Strategic Hub] -->|Observation| B(Market Intel + ESG State)
-    B -->|Reasoning| C{Strategic Decision}
-    C -->|Replenishment| D[Global Supplier Flow]
-    C -->|Transshipment| E[Network Rebalancing - Green Bonus]
-    C -->|Priority Ship| F[Emergency Ops - Carbon Penalty]
-    D/E/F -->|Execution| G(Stochastic Physics & Lead Times)
-    G -->|Reward Signal| A
-    G -->|Compliance Score| H[Hackathon Validation]
+    A[AEGIS Global Hub] -->|Observation| B(Market Intel + ESG Metrics)
+    B -->|Neural Reasoning| C{Strategic Decision}
+    C -->|Normal Order| D[Stable Logistics - Profit Max]
+    C -->|Rush Order| E[Emergency Response - Carbon Penalty]
+    C -->|Transshipment| F[Horizontal Balancing - Green Bonus]
+    D/E/F -->|Execution| G(Stochastic Physics / Shocks)
+    G -->|Composite Reward| A
+    G -->|Compliance Score| H[OpenEnv Validator]
 ```
 
 ---
 
-## 🏁 Task Maturity Matrix
+## 🏁 Task Maturity Levels
 
-| Task ID | Nodes | Geopolitical Shocks | Complexity | Target Service Level |
+| Task ID | Nodes | Volatility | Complexity | Success Target (SL) |
 | :--- | :---: | :---: | :---: | :---: |
-| `inventory_easy_task` | 1 | Low | 🟢 Low | > 92% |
-| `inventory_medium_task` | 3 | Medium | 🟡 Med | > 88% |
-| `inventory_hard_task` | 5 | Continuous | 🔴 High | > 85% |
+| `inventory_easy_task` | 1 | Stable | 🟢 Minimal | > 92% |
+| `inventory_medium_task` | 3 | Regional | 🟡 Moderate | > 88% |
+| `inventory_hard_task` | 5 | Global | 🔴 Extreme | > 85% |
 
 ---
 
-## 🚀 Quick Start & Deployment
+## 🚀 Deployment & Operations
 
-### 1. View the Premium Dashboard
-We've built an interactive "Strategic Command" UI with pulsing maps and real-time inference telemetry.
+### 📊 Tactical Command Dashboard
+Launch the high-fidelity UI to view pulsing supply lines and real-time neural inference streams.
 ```bash
 python server/app.py
-# View live at http://localhost:7860
+# Exposed at http://localhost:7860
 ```
 
-### 2. Run the Neural Baseline
-Our baseline uses **Qwen-2.5-72B** to solve the reasoning gap via the Hugging Face Inference Router.
+### 🧠 Strategic AI Baseline (Qwen-72B)
+Execute the pre-built Agentic baseline that leverages the Hugging Face Router to solve the reasoning gap.
 ```bash
-export HF_TOKEN="your_token_here"
+export HF_TOKEN="your_huggingface_token"
 python inference.py --task inventory_hard_task
 ```
 
-### 3. OpenEnv Validation
-To verify compliance with the Meta Hackathon standards:
+### ✅ Official OpenEnv Validation
+Run the judge-grade validation tool to verify repository compliance.
 ```bash
 pip install openenv
 openenv validate .
 ```
 
 ---
-
-## 🏆 Competition Tracking
-*   **Track**: OpenEnv Phase 1 Submission
-*   **Primary Innovation**: Semantic Foresight & Multi-Objective ESG Shaping.
-*   **Status**: Production Ready / Fully Validated.
-
----
-*Created for the Meta x SST OpenEnv Hackathon 2026. Powered by PyTorch and AI Reasoning.*
+*Developed for the Meta x SST OpenEnv Hackathon 2026. Powered by PyTorch, Pydantic, and AI Strategic Reasoning.*
