@@ -29,8 +29,8 @@ class InventoryGymEnv:
         
         # Difficulty scaling (Intel frequency)
         self.shock_prob = 0.05
-        if difficulty == "easy": self.shock_prob = 0.0
-        elif difficulty == "hard": self.shock_prob = 0.15
+        if "easy" in difficulty: self.shock_prob = 0.0
+        elif "hard" in difficulty: self.shock_prob = 0.15
         
         self.current_step = 0
         self.warehouses: List[Warehouse] = []

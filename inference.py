@@ -26,12 +26,12 @@ BENCHMARK = "InventoryGym-v1"
 
 # Task Mapping
 CONFIGS = {
-    "inventory_easy": {"num_warehouses": 1, "num_steps": 50, "lead_time": 5},
-    "inventory_medium": {"num_warehouses": 3, "num_steps": 100, "lead_time": 4},
-    "inventory_hard": {"num_warehouses": 5, "num_steps": 100, "lead_time": 3}
+    "inventory_easy_task": {"num_warehouses": 1, "num_steps": 50, "lead_time": 5},
+    "inventory_medium_task": {"num_warehouses": 3, "num_steps": 100, "lead_time": 4},
+    "inventory_hard_task": {"num_warehouses": 5, "num_steps": 100, "lead_time": 3}
 }
 
-config = CONFIGS.get(TASK_NAME, CONFIGS["inventory_medium"])
+config = CONFIGS.get(TASK_NAME, CONFIGS["inventory_medium_task"])
 MAX_STEPS = config["num_steps"]
 
 SYSTEM_PROMPT = """
@@ -56,7 +56,7 @@ STRICT OUTPUT: Respond ONLY with the command.
 """
 
 def log_start(task: str, env: str, model: str):
-    print(f"[START] task={task}", flush=True)
+    print(f"[START] task={task} ...", flush=True)
 
 def log_step(step: int, action: str, reward: float, done: bool, error: str = "null"):
     done_str = "true" if done else "false"
@@ -71,7 +71,7 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float]):
 
 async def run_task(task_name: str, client: OpenAI):
     """Run a single task and log the results."""
-    config = CONFIGS.get(task_name, CONFIGS["inventory_medium"])
+    config = CONFIGS.get(task_name, CONFIGS["inventory_medium_task"])
     MAX_STEPS = config["num_steps"]
     
     env = InventoryGymEnv(**config, difficulty=task_name)
