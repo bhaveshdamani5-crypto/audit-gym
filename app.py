@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-AuditGym-v1 Hugging Face Space - Interactive Streamlit UI
-Demonstrates OpenEnv environment with live demos and documentation
+InventoryGym-v1 Hugging Face Space - Interactive Streamlit UI
+Demonstrates OpenEnv environment for supply chain optimization
 """
 
 import streamlit as st
 import asyncio
-import json
-from src.env import AuditGymEnv
+from src.env import InventoryGymEnv
 from src.models import Action
 from src.grader import grade_easy, grade_medium, grade_hard
 
@@ -22,8 +21,8 @@ def run_async(coro):
 
 # Page config
 st.set_page_config(
-    page_title="AuditGym-v1",
-    page_icon="🔍",
+    page_title="InventoryGym-v1",
+    page_icon="📦",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -68,51 +67,137 @@ if 'history' not in st.session_state:
     st.session_state.history = []
 
 # Header
-st.markdown('<p class="header-title">🔍 AuditGym-v1: OpenEnv Forensic Audit Environment</p>', unsafe_allow_html=True)
-st.markdown("**Detect synthetic fraud in transaction datasets using OpenEnv API**")
+st.markdown('<p class="header-title">� InventoryGym-v1: Supply Chain Intelligence</p>', unsafe_allow_html=True)
+st.markdown("**An OpenEnv environment for multi-warehouse inventory optimization**")
 st.divider()
 
-# Sidebar
+# Sidebar navigation
 with st.sidebar:
     st.markdown("### 📋 Navigation")
     page = st.radio("Select Section:", 
-        ["🏠 Home", "🎮 Environment Explorer", "📚 API & OpenEnv Spec", "📊 Task Levels", "🎯 Live Demo"])
+        ["🏠 Home", "📚 OpenEnv Spec", "📊 Task Levels", "🎮 Environment Info"])
 
 # ============ HOME PAGE ============
 if page == "🏠 Home":
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("### What is AuditGym-v1?")
+        st.markdown("### What is InventoryGym-v1?")
         st.write("""
-        AuditGym is a real-world OpenEnv environment for training AI agents to detect fraudulent 
-        transactions in financial datasets. It presents a forensic audit challenge where agents 
-        must intelligently query, verify, and flag suspicious activities.
+        InventoryGym is a real-world OpenEnv environment for training AI agents to optimize 
+        multi-warehouse inventory management. Agents must balance two competing objectives:
         
-        **Key Characteristics:**
-        - 🎯 **Real-world task**: Forensic fraud detection
-        - 📈 **Progressive difficulty**: Easy, Medium, Hard
-        - 🏆 **OpenEnv compliant**: Standard async API
-        - 💡 **Meaningful rewards**: Partial progress signals
+        **The Challenge:** Minimize costs while maximizing demand fulfillment
+        
+        - 📈 **Holding costs**: Every unit in inventory costs money per step
+        - 📉 **Stockout penalties**: Unmet demand loses sales
+        - ⏱️ **Lead times**: Orders take 2-5 steps to arrive
+        - 🎯 **Multi-location**: Coordinate across 1-5 warehouses
         """)
         
-        st.markdown("### How It Works")
+        st.markdown("### Why This Matters")
         st.info("""
-        1. **Query** (`query amount > 5000`): Filter transactions by criteria
-        2. **Verify** (`verify id 123`): Get cross-reference information  
-        3. **Flag** (`flag id 123`): Mark transaction as fraudulent
+        Unlike classification tasks, agents don't learn a single "right answer."
+        They learn to **discover the Pareto frontier** between cost and service:
+        - Random agent: 30% fulfillment, $50k cost → score 0.15
+        - Smart agent: 95% fulfillment, $12k cost → score 0.90+
         
-        The agent earns rewards for correct decisions and penalties for mistakes.
+        **Learning emerges naturally through trade-off discovery.**
         """)
     
     with col2:
-        st.markdown("### 📊 Statistics")
-        st.metric("Total Frauds Hidden", "1-5", delta="Per Task")
-        st.metric("Red Herrings", "5-50", delta="Per Task")
-        st.metric("Max Episode Length", "1000", delta="Transactions")
+        st.markdown("### 📊 Key Metrics")
+        st.metric("Warehouses", "1-5", delta="Per Task")
+        st.metric("Demand Pattern", "Non-stationary", delta="Seasonal + Trend")
+        st.metric("Episode Length", "50-100", delta="Steps")
 
-# ============ ENVIRONMENT EXPLORER ============
-elif page == "🎮 Environment Explorer":
+# ============ OPENENV SPEC ============
+elif page == "📚 OpenEnv Spec":
+    st.markdown("### 📚 Full OpenEnv Specification")
+    
+    tab1, tab2, tab3 = st.tabs(["🔹 Models", "🔄 Methods", "📡 Config"])
+    
+    with tab1:
+        st.markdown("#### Pydantic Models")
+        st.code("""
+class Action(BaseModel):
+    dest_warehouse: int
+    quantity: float
+    priority: str  # "normal" or "expedited"
+
+class InventoryObservation(BaseModel):
+    warehouses: List[Dict]
+    pending_orders: List[Dict]
+    forecasted_demand: List[Dict]
+    current_step: int
+    total_cost: float
+
+class ResetResponse(BaseModel):
+    observation: InventoryObservation
+
+class StepResponse(BaseModel):
+    observation: InventoryObservation
+    reward: float
+    done: bool
+        """, language="python")
+    
+    with tab2:
+        st.markdown("#### Core Methods")
+        st.code("""
+async reset() -> ResetResponse
+async step(action: Action) -> StepResponse
+async state() -> Dict[str, Any]
+        """, language="python")
+    
+    with tab3:
+        st.markdown("#### openenv.yaml")
+        st.code("""
+name: InventoryGym
+version: v1
+models:
+  - src.models.Action
+  - src.models.InventoryObservation
+environment: src.env:InventoryGymEnv
+        """, language="yaml")
+
+# ============ TASK LEVELS ============
+elif page == "📊 Task Levels":
+    st.markdown("### 📊 Task Difficulty Levels")
+    
+    tasks = [
+        {"name": "Easy", "warehouses": 1, "lead": 5, "steps": 50},
+        {"name": "Medium", "warehouses": 3, "lead": 3, "steps": 100},
+        {"name": "Hard", "warehouses": 5, "lead": 2, "steps": 100}
+    ]
+    
+    cols = st.columns(3)
+    for i, task in enumerate(tasks):
+        with cols[i]:
+            st.metric(task["name"], f"{task['warehouses']} warehouse(s)")
+            st.metric("Lead Time", f"{task['lead']} steps")
+            st.metric("Episode", f"{task['steps']} steps")
+
+# ============ ENVIRONMENT INFO ============
+elif page == "🎮 Environment Info":
+    st.markdown("### 🎮 Environment Architecture")
+    
+    st.markdown("#### Reward Function")
+    st.code("""
+Fulfillment:     +0.5 × (fulfilled / demand)
+Stockout penalty: -0.3 × unmet_demand
+Holding cost:    -0.01 × inventory
+    """)
+    
+    st.markdown("#### Expected Performance")
+    st.dataframe({
+        "Model": ["Random", "GPT-3.5", "GPT-4", "Reasoning"],
+        "Easy": ["0.20", "0.60", "0.82", "0.92"],
+        "Medium": ["0.10", "0.45", "0.72", "0.85"],
+        "Hard": ["0.05", "0.35", "0.60", "0.78+"]
+    })
+
+st.divider()
+st.caption("InventoryGym-v1 | OpenEnv Hackathon | Multi-warehouse Inventory Optimization")
     st.markdown("### 🎮 Interactive Environment Explorer")
     st.write("Test the OpenEnv environment with manual actions")
     

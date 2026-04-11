@@ -4,11 +4,12 @@ Each grader returns a score between 0.0 and 1.0 based on final performance.
 """
 
 
-def grade_easy(state):
+def grade_easy(state=None):
     """
     Grade easy task: Single warehouse, predictable demand, long lead times.
     Easy for agents to learn basic ordering patterns.
     """
+    state = state or {}
     return _grade_inventory_task(
         total_cost=state.get('total_cost', 1e9),
         fulfillment_rate=state.get('fulfillment_rate', 0.0),
@@ -17,11 +18,12 @@ def grade_easy(state):
     )
 
 
-def grade_medium(state):
+def grade_medium(state=None):
     """
     Grade medium task: 3 warehouses, variable demand, medium lead times.
     Requires learning to coordinate orders across locations.
     """
+    state = state or {}
     return _grade_inventory_task(
         total_cost=state.get('total_cost', 1e9),
         fulfillment_rate=state.get('fulfillment_rate', 0.0),
@@ -30,11 +32,12 @@ def grade_medium(state):
     )
 
 
-def grade_hard(state):
+def grade_hard(state=None):
     """
     Grade hard task: 5 warehouses, seasonal demand, short lead times.
     Requires sophisticated forecasting and multi-warehouse coordination.
     """
+    state = state or {}
     return _grade_inventory_task(
         total_cost=state.get('total_cost', 1e9),
         fulfillment_rate=state.get('fulfillment_rate', 0.0),

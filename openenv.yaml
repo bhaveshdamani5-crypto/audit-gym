@@ -9,3 +9,13 @@ models:
   - src.models.Warehouse
   - src.models.Order
 environment: src.env:InventoryGymEnv
+tasks:
+  - id: inventory-easy
+    description: Single warehouse inventory management with predictable demand
+    grader: src.grader:grade_easy
+  - id: inventory-medium
+    description: Three warehouse coordination with variable demand
+    grader: src.grader:grade_medium
+  - id: inventory-hard
+    description: Five warehouse network with seasonal demand and aggressive forecasting
+    grader: src.grader:grade_hard

@@ -128,27 +128,27 @@ Decide your next ordering action:
         print(f"[DEBUG] Model request failed: {exc}", flush=True)
         return "order 0 250"
 
-async def main() -> None:
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-
-    env = InventoryGymEnv(**config)
-
+async def run_single_task(task_id: str, task_config: dict, client: OpenAI) -> tuple:
+    """Run a single task and return (success, steps, score, rewards)"""
+    env = InventoryGymEnv(**task_config)
+    
     history: List[str] = []
     rewards: List[float] = []
     steps_taken = 0
     score = 0.0
     success = False
-
-    log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
-
+    
+    log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
+    
     try:
         result = await env.reset()
         last_reward = 0.0
-
-        for step in range(1, MAX_STEPS + 1):
+        max_steps = task_config.get('num_steps', 100)
+        
+        for step in range(1, max_steps + 1):
             if result.done:
                 break
-
+            
             # Parse warehouse and quantity from action
             action_text = get_model_message(client, step, result.observation, last_reward, history)
             
@@ -167,7 +167,7 @@ async def main() -> None:
                             priority = parts[3]
             except (ValueError, IndexError):
                 pass
-
+            
             action = Action(dest_warehouse=warehouse_id, quantity=quantity, priority=priority)
             result = await env.step(action)
             
@@ -177,25 +177,44 @@ async def main() -> None:
             rewards.append(reward)
             steps_taken = step
             last_reward = reward
-
+            
             log_step(step=step, action=action_text, reward=reward, done=done, error=None)
             history.append(f"Step {step}: {action_text} -> reward {reward:.2f}")
-
+            
             if done:
                 break
-
+        
         # Final scoring
         final_state = await env.state()
         score = final_state.get('fulfillment_rate', 0.0) * 0.6 + (1.0 - min(final_state.get('total_cost', 1e9) / 50000, 1.0)) * 0.4
         score = max(0.0, min(1.0, score))
         success = score >= SUCCESS_SCORE_THRESHOLD
-
+    
     finally:
         try:
             await env.close()
         except Exception as e:
             print(f"[DEBUG] env.close() error: {e}", flush=True)
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
+    
+    return (success, steps_taken, score, rewards)
+
+async def main() -> None:
+    """Run all three tasks: easy, medium, hard"""
+    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    
+    # Task order matching openenv.yaml definitions
+    task_order = ["inventory-easy", "inventory-medium", "inventory-hard"]
+    
+    # Allow override via environment variable for single-task runs
+    single_task = os.getenv("TASK_NAME", None)
+    if single_task and single_task in TASK_CONFIGS:
+        task_order = [single_task]
+    
+    for task_id in task_order:
+        if task_id in TASK_CONFIGS:
+            task_config = TASK_CONFIGS[task_id]
+            await run_single_task(task_id, task_config, client)
 
 if __name__ == "__main__":
     asyncio.run(main())
