@@ -8,7 +8,7 @@ Phase 2 Compliance:
 - Compatible with parameterless validation checks
 """
 
-def grade_easy(trajectory=None):
+def grade_easy(trajectory: dict = None) -> float:
     """
     Easy: 1 Warehouse. Baseline for learning basic replenishment.
     Requires >92% Service Level and stable costs.
@@ -20,7 +20,7 @@ def grade_easy(trajectory=None):
         cost_budget=15000.0
     )
 
-def grade_medium(trajectory=None):
+def grade_medium(trajectory: dict = None) -> float:
     """
     Medium: 3 Warehouses. Coordination and basic forecasting needed.
     Requires >88% Service Level across network.
@@ -32,7 +32,7 @@ def grade_medium(trajectory=None):
         cost_budget=40000.0
     )
 
-def grade_hard(trajectory=None):
+def grade_hard(trajectory: dict = None) -> float:
     """
     Hard: 5 Warehouses + Volatile Demand. Advanced optimization required.
     Requires resilient strategy against demand shocks.
