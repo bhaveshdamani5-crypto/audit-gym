@@ -1,6 +1,11 @@
 """
 Grader functions for evaluating agent performance on InventoryGym tasks.
 Evaluates the trade-off between Supply Chain Stability (Service Level) and Cost Efficiency.
+
+Phase 2 Compliance:
+- All graders have default state=None parameter for reflection testing
+- Returns float scores between 0.0 and 1.0 (clamped to [0.01, 0.99])
+- Compatible with parameterless validation checks
 """
 
 def grade_easy(state=None):
